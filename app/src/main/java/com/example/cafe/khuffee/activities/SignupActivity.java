@@ -139,7 +139,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         networkHandler.checkID(editId.getText().toString());
 
         while(networkHandler.isWorking()) {
-            Log.e("aa", "AA");
+            ;
         }
 
         if(networkHandler.getCheckId()) {
@@ -150,7 +150,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         networkHandler.insertUser(user);
 
         while(networkHandler.isWorking()) {
-            Log.e("aa", "AA");
+            ;
         }
 
         if(networkHandler.getInsertUser()) {

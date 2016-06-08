@@ -94,7 +94,7 @@ public class Connection extends Thread {
                 }
                 receiveBuffer.add(received);
             }
-            //oos.writeUTF(END_MESSAGE);
+            oos.writeUTF(END_MESSAGE);
 
         } catch (Exception e) {
             e.printStackTrace();

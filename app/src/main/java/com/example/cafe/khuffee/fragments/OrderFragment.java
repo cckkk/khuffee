@@ -84,19 +84,19 @@ public class OrderFragment extends Fragment implements View.OnClickListener{
         }
         else {
             orderViewGroup.removeView(lnStranger);
-            btnOrder = (Button)view.findViewById(R.id.btn_order);
-            TextView textView1 = (TextView)view.findViewById(R.id.tv_menu1);
-            TextView textView2 = (TextView)view.findViewById(R.id.tv_menu2);
-
-            menuitems = new ArrayList<>();
-            menuitems = ((MainActivity) getActivity()).getMenuitems();
-
-            Menuitem menuitem1 = menuitems.get(4);
-            Menuitem menuitem2 = menuitems.get(40);
-
-            ArrayList<Menuitem> orderItems = new ArrayList<>();
-            orderItems.add(menuitem1);
-            orderItems.add(menuitem2);
+//            btnOrder = (Button)view.findViewById(R.id.btn_order);
+//            TextView textView1 = (TextView)view.findViewById(R.id.tv_menu1);
+//            TextView textView2 = (TextView)view.findViewById(R.id.tv_menu2);
+//
+//            menuitems = new ArrayList<>();
+//            menuitems = ((MainActivity) getActivity()).getMenuitems();
+//
+//            Menuitem menuitem1 = menuitems.get(4);
+//            Menuitem menuitem2 = menuitems.get(40);
+//
+//            ArrayList<Menuitem> orderItems = new ArrayList<>();
+//            orderItems.add(menuitem1);
+//            orderItems.add(menuitem2);
 
 
 

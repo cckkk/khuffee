@@ -81,16 +81,17 @@ public class NetworkHandler {
                 connection.run();
 
                 while(connection.hasNext()) {
-                    if(((String)connection.popReceiveBuffer()).compareTo("ACCEPT") == 0) {
+                    String str = (String)connection.popReceiveBuffer();
+                    if(str.compareTo("ACCEPT") == 0) {
                         user = (User)connection.popReceiveBuffer();
                         flgSignin = true;
                     }
-                    else if(((String)connection.popReceiveBuffer()).compareTo("NONE") == 0) {
+                    else if(str.compareTo("NONE") == 0) {
                         message = "존재하지 않는 아이디입니다.";
                         flgSignin = false;
 
                     }
-                    else if(((String)connection.popReceiveBuffer()).compareTo("REJECT") == 0) {
+                    else if(str.compareTo("REJECT") == 0) {
                         message = "비밀번호가 일치하지 않습니다.";
                         flgSignin = false;
                     }
