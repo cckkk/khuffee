@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/ln_stranger_c"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="50"
+            android:layout_gravity="center|bottom"
+            android:gravity="center"
+            android:text="@string/restriction"
+            android:textIsSelectable="false"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="@color/colorKhuffee"
+            android:padding="10dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="50"
+            android:padding="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="50"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="5dp"
+                android:layout_gravity="top|center"
+                android:padding="10dp"
+                android:background="@color/colorSignIn"
+                android:textColor="@color/White"
+                android:text="@string/sign_in"
+                android:textAllCaps="false"
+                android:id="@+id/btn_sign_in_c"/>
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="50"
+                android:layout_marginRight="20dp"
+                android:layout_marginLeft="5dp"
+                android:layout_gravity="top|center"
+                android:padding="10dp"
+                android:background="@color/colorSignup"
+                android:textColor="@color/colorKhuffee"
+                android:text="@string/sign_up"
+                android:textAllCaps="false"
+                android:id="@+id/btn_sign_up_c"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ln_user_c"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Coupon"
+            android:textAlignment="center"
+            android:textIsSelectable="false"
+            android:textSize="30dp" />
+    </LinearLayout>
+</LinearLayout>

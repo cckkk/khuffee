@@ -1,0 +1,3629 @@
+Index: app/src/main/res/layout/fragment_home.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/fragment_home.xml	(revision )
++++ app/src/main/res/layout/fragment_home.xml	(revision )
+@@ -0,0 +1,101 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical">
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="15"
++        android:layout_gravity="center_vertical"
++        android:gravity="bottom"
++        android:text="@string/welcom"
++        android:textSize="30sp"
++        android:textIsSelectable="false"
++        android:textAlignment="center"/>
++
++    <ImageView
++        android:id="@+id/img_khuffee"
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="45"
++        android:layout_margin="30dp"/>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="40"
++        android:orientation="vertical"
++        android:weightSum="100">
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="0dp"
++            android:layout_weight="30"
++            android:orientation="vertical">
++
++            <TextView
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content"
++                android:gravity="center"
++                android:padding="5dp"
++                android:text="운영시간"
++                android:textAppearance="?android:textAppearanceSmall"
++                android:textStyle="bold" />
++
++            <TextView
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content"
++                android:gravity="center"
++                android:padding="5dp"
++                android:text="08:30 ~ 18:30" />
++
++        </LinearLayout>
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="0dp"
++            android:layout_weight="55"
++            android:layout_gravity="top"
++            android:orientation="vertical"
++            android:weightSum="100">
++
++            <TextView
++                android:layout_width="match_parent"
++                android:layout_height="0dp"
++                android:layout_weight="30"
++                android:gravity="center"
++                android:padding="5dp"
++                android:text="위    치"
++                android:textAppearance="?android:textAppearanceSmall"
++                android:textStyle="bold" />
++
++            <TextView
++                android:layout_width="match_parent"
++                android:layout_height="0dp"
++                android:layout_weight="25"
++                android:gravity="center"
++                android:padding="5dp"
++                android:text="멀티미디어관" />
++
++            <TextView
++                android:layout_width="match_parent"
++                android:layout_height="0dp"
++                android:layout_weight="25"
++                android:gravity="center"
++                android:padding="5dp"
++                android:text="중앙도서관" />
++
++            <TextView
++                android:layout_width="match_parent"
++                android:layout_height="0dp"
++                android:layout_weight="25"
++                android:gravity="center"
++                android:padding="5dp"
++                android:text="학생회관" />
++        </LinearLayout>
++    </LinearLayout>
++
++
++</LinearLayout>
+Index: app/src/main/java/com/example/cafe/khuffee/activities/SplashActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/activities/SplashActivity.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/activities/SplashActivity.java	(revision )
+@@ -0,0 +1,154 @@
++package com.example.cafe.khuffee.activities;
++
++import android.content.Intent;
++import android.os.AsyncTask;
++import android.os.Bundle;
++import android.support.v7.app.AppCompatActivity;
++import android.widget.ImageView;
++import android.widget.TextView;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.database.Dao;
++
++import org.json.JSONArray;
++import org.json.JSONObject;
++
++import java.io.BufferedReader;
++import java.io.InputStreamReader;
++import java.net.HttpURLConnection;
++import java.net.URL;
++import java.util.ArrayList;
++
++import classes.Menuitem;
++import classes.User;
++
++
++public class SplashActivity extends AppCompatActivity {
++    private ImageView imgSplash;
++    private TextView tvSplash;
++
++    private boolean isDone;
++
++    private Dao dao;
++    private String[] log;
++    private User user;
++    private ArrayList<Menuitem> menuitems;
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.activity_splash);
++
++        setLayout();
++
++        imgSplash.setImageResource(R.drawable.khuffee_logo);       //로고 이미지 띄우기
++        tvSplash.setText("loading log...");                         //현재 상태 메세지
++
++        isDone = false;                                             //내부 db에서 로그를 조회 여부
++
++        //메뉴 정보를 가져오기
++        new LoadData().execute("https://menu-ckkkkk.c9users.io/menuitems.php");
++
++        //내부 db에서 로그 조회하기
++        dao = new Dao(SplashActivity.this);
++        log = new String[2];
++        log = dao.getLog();
++
++        //로그가 있다면 사용자 정보를 가져오기
++        //@@to-do 성찬이 서버가 완료되면 내부db에서 가져오는 것이 아니라 서버와 연결해서 가져오기
++        if(log != null) {
++            user = dao.getUser(log[0]);
++            menuitems = dao.getMenuitem();
++        }
++
++        isDone = true;
++    }
++
++    private void setLayout() {
++        imgSplash = (ImageView) findViewById(R.id.img_splash);
++        tvSplash = (TextView) findViewById(R.id.tv_splash);
++    }
++
++    private class LoadData extends AsyncTask<String, Void, Void> {
++        private String phpData;
++
++        @Override
++        protected void onPreExecute() {
++            tvSplash.setText("conneting server...");
++            super.onPreExecute();
++        }
++
++        @Override
++        protected Void doInBackground(String... params) {
++            try {
++                URL url = new URL(params[0]);
++                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
++                connection.setDefaultUseCaches(false);
++                connection.setDoInput(true);
++                connection.setRequestMethod("POST");
++
++                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
++                StringBuilder sb = new StringBuilder();
++                String line;
++                while ((line = reader.readLine()) != null) {
++                    sb.append(line);
++                }
++                phpData = sb.toString();
++                connection.disconnect();
++            } catch (Exception e) {
++                e.printStackTrace();
++            }
++            try {
++                JSONObject jsonObject = new JSONObject(phpData);
++                int php_db_version = jsonObject.getInt("version");
++                int sql_db_version = dao.getVersion();
++
++                if (log == null || php_db_version != sql_db_version) {
++                    runOnUiThread(new Runnable() {
++                        @Override
++                        public void run() {
++                            tvSplash.setText("loading menu  data");
++                        }
++                    });
++                    JSONArray jsonArray = jsonObject.getJSONArray("menuitems");
++                    menuitems = new ArrayList<>();
++                    for (int i = 0; i < jsonArray.length(); ++i) {
++                        JSONObject object = jsonArray.getJSONObject(i);
++
++                        Menuitem menuitem = new Menuitem(object.getInt("type"), object.getString("name_kor"),
++                                object.getString("name_eng"), object.getInt("price_hot"), object.getInt("price_cold"));
++                        dao.insertMenuitem(menuitem);
++                        menuitems.add(menuitem);
++                    }
++                }
++            } catch (Exception e) {
++                e.printStackTrace();
++            }
++
++            runOnUiThread(new Runnable() {
++                @Override
++                public void run() {
++                    tvSplash.setText("done !");
++                }
++            });
++            return null;
++        }
++
++        @Override
++        protected void onPostExecute(Void aVoid) {
++            dao.close();
++
++            //SplashActivity의 동작이 끝날 때까지 무한루프
++            while(!isDone) {}
++
++            //MainActivity 실행
++            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
++            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
++            intent.putExtra("user", user);
++            intent.putExtra("menuitems", menuitems);
++            startActivity(intent);
++            super.onPostExecute(aVoid);
++        }
++    }
++}
+Index: classes/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- classes/build.gradle	(revision )
++++ classes/build.gradle	(revision )
+@@ -0,0 +1,2 @@
++configurations.create("default")
++artifacts.add("default", file('classes.jar'))
+\ No newline at end of file
+Index: app/proguard-rules.pro
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/proguard-rules.pro	(revision )
++++ app/proguard-rules.pro	(revision )
+@@ -0,0 +1,17 @@
++# Add project specific ProGuard rules here.
++# By default, the flags in this file are appended to flags specified
++# in D:\SDK/tools/proguard/proguard-android.txt
++# You can edit the include path and order by changing the proguardFiles
++# directive in build.gradle.
++#
++# For more details, see
++#   http://developer.android.com/guide/developing/tools/proguard.html
++
++# Add any project specific keep options here:
++
++# If your project uses WebView with JS, uncomment the following
++# and specify the fully qualified class name to the JavaScript interface
++# class:
++#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
++#   public *;
++#}
+Index: app/src/main/res/drawable/border.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/border.xml	(revision )
++++ app/src/main/res/drawable/border.xml	(revision )
+@@ -0,0 +1,16 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android"
++    android:shape="rectangle">
++    <corners
++        android:radius="10dp"/>
++    <stroke
++        android:width="2dp"
++        android:color="@color/colorKhuffee" />
++    <padding
++        android:bottom="4dp"
++        android:left="4dp"
++        android:right="4dp"
++        android:top="4dp">
++
++    </padding>
++</shape>
+\ No newline at end of file
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/compiler.xml	(revision )
++++ .idea/compiler.xml	(revision )
+@@ -0,0 +1,22 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="CompilerConfiguration">
++    <resourceExtensions />
++    <wildcardResourcePatterns>
++      <entry name="!?*.java" />
++      <entry name="!?*.form" />
++      <entry name="!?*.class" />
++      <entry name="!?*.groovy" />
++      <entry name="!?*.scala" />
++      <entry name="!?*.flex" />
++      <entry name="!?*.kt" />
++      <entry name="!?*.clj" />
++      <entry name="!?*.aj" />
++    </wildcardResourcePatterns>
++    <annotationProcessing>
++      <profile default="true" name="Default" enabled="false">
++        <processorPath useClasspath="true" />
++      </profile>
++    </annotationProcessing>
++  </component>
++</project>
+\ No newline at end of file
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/build.gradle	(revision )
++++ app/build.gradle	(revision )
+@@ -0,0 +1,27 @@
++apply plugin: 'com.android.application'
++
++android {
++    compileSdkVersion 23
++    buildToolsVersion "23.0.2"
++
++    defaultConfig {
++        applicationId "com.example.cafe.khuffee"
++        minSdkVersion 14
++        targetSdkVersion 23
++        versionCode 1
++        versionName "1.0"
++    }
++    buildTypes {
++        release {
++            minifyEnabled false
++            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
++        }
++    }
++}
++
++dependencies {
++    compile fileTree(include: ['*.jar'], dir: 'libs')
++    testCompile 'junit:junit:4.12'
++    compile 'com.android.support:appcompat-v7:23.2.1'
++    compile project(':Classes3')
++}
+Index: app/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/.gitignore	(revision )
++++ app/.gitignore	(revision )
+@@ -0,0 +1,1 @@
++/build
+Index: app/src/main/java/com/example/cafe/khuffee/database/DatabaseOpenHelper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/database/DatabaseOpenHelper.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/database/DatabaseOpenHelper.java	(revision )
+@@ -0,0 +1,100 @@
++package com.example.cafe.khuffee.database;
++
++import android.content.ContentValues;
++import android.content.Context;
++import android.database.Cursor;
++import android.database.sqlite.SQLiteDatabase;
++import android.database.sqlite.SQLiteOpenHelper;
++import android.util.Log;
++
++/**
++ * Created by ckkk on 2016-05-28.
++ */
++public class DatabaseOpenHelper extends SQLiteOpenHelper {
++    private static DatabaseOpenHelper mInstance;
++    private static SQLiteDatabase mDatabase;
++
++    private DatabaseOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
++        super(context, name, factory, version);
++        Log.v(this.getClass().getSimpleName(), name);
++    }
++
++    private DatabaseOpenHelper(Context context) {
++        super(context, DatabaseCreator.DATABASE_NAME, null, DatabaseCreator.DATABASE_VERSION);
++        Log.v(this.getClass().getSimpleName(), DatabaseCreator.DATABASE_NAME);
++    }
++
++    private static void initialize(Context context) {
++        if(mInstance == null) {
++            mInstance = new DatabaseOpenHelper(context);
++            mDatabase = mInstance.getWritableDatabase();
++        }
++    }
++
++    public static final DatabaseOpenHelper getmInstance(Context context) {
++        initialize(context);
++        return mInstance;
++    }
++
++    public void close() {
++        if(mInstance != null) {
++            mDatabase.close();
++            mInstance = null;
++        }
++    }
++
++    public long insert(String tableName, ContentValues contentValues) {
++        return mDatabase.insert(tableName, null, contentValues);
++    }
++
++    public Cursor get(String sql) {
++        return mDatabase.rawQuery(sql, null);
++    }
++
++    public int getVersion() {
++        return DatabaseCreator.DATABASE_VERSION;
++    }
++
++    /**
++     * Called when the database is created for the first time. This is where the
++     * creation of tables and the initial population of the tables should happen.
++     *
++     * @param db The database.
++     */
++    @Override
++    public void onCreate(SQLiteDatabase db) {
++        DatabaseCreatorInterface databaseCreatorInterface = new DatabaseCreator();
++        String[] tableCreateStatement = databaseCreatorInterface.getCreateTableStatement();
++
++        if(tableCreateStatement != null && tableCreateStatement.length > 0) {
++            for(int i = 0; i < tableCreateStatement.length; ++i) {
++                db.execSQL(tableCreateStatement[i]);
++            }
++        }
++    }
++
++    /**
++     * Called when the database needs to be upgraded. The implementation
++     * should use this method to drop tables, add tables, or do anything else it
++     * needs to upgrade to the new schema version.
++     * <p>
++     * <p>
++     * The SQLite ALTER TABLE documentation can be found
++     * <a href="http://sqlite.org/lang_altertable.html">here</a>. If you add new columns
++     * you can use ALTER TABLE to insert them into a live table. If you rename or remove columns
++     * you can use ALTER TABLE to rename the old table, then create the new table and then
++     * populate the new table with the contents of the old table.
++     * </p><p>
++     * This method executes within a transaction.  If an exception is thrown, all changes
++     * will automatically be rolled back.
++     * </p>
++     *
++     * @param db         The database.
++     * @param oldVersion The old database version.
++     * @param newVersion The new database version.
++     */
++    @Override
++    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
++
++    }
++}
+Index: app/src/main/res/layout/fragment_menu.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/fragment_menu.xml	(revision )
++++ app/src/main/res/layout/fragment_menu.xml	(revision )
+@@ -0,0 +1,203 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical"
++    android:padding="10dp">
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_gravity="center_horizontal"
++        android:gravity="center"
++        android:padding="10dp"
++        android:text="Menu"
++        android:textAppearance="?android:textAppearanceLarge"
++        android:textColor="@color/colorKhuffee"
++        android:textIsSelectable="false" />
++
++    <View
++        android:layout_width="match_parent"
++        android:layout_height="2dp"
++        android:layout_marginBottom="10dp"
++        android:background="#ff909090" />
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/border"
++        android:layout_margin="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="70"
++            android:minWidth="150dp"
++            android:text="Espresso Variation"
++            android:textAppearance="?android:textAppearanceLarge" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Hot"
++            android:textAppearance="?android:textAppearanceSmall" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Cold"
++            android:textAppearance="?android:textAppearanceSmall" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/border"
++        android:layout_margin="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="70"
++            android:minWidth="150dp"
++            android:text="Single Origin Coffee"
++            android:textAppearance="?android:textAppearanceLarge" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Hot"
++            android:textAppearance="?android:textAppearanceSmall" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Cold"
++            android:textAppearance="?android:textAppearanceSmall" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/border"
++        android:layout_margin="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="70"
++            android:minWidth="150dp"
++            android:text="Other Beverage"
++            android:textAppearance="?android:textAppearanceLarge" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Hot"
++            android:textAppearance="?android:textAppearanceSmall" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Cold"
++            android:textAppearance="?android:textAppearanceSmall" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/border"
++        android:layout_margin="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="70"
++            android:minWidth="150dp"
++            android:text="Orgarnic Tea"
++            android:textAppearance="?android:textAppearanceLarge" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Hot"
++            android:textAppearance="?android:textAppearanceSmall" />
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Cold"
++            android:textAppearance="?android:textAppearanceSmall" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/border"
++        android:layout_margin="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="85"
++            android:minWidth="150dp"
++            android:text="Smoothie"
++            android:textAppearance="?android:textAppearanceLarge" />
++
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Cold"
++            android:textAppearance="?android:textAppearanceSmall" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:background="@drawable/border"
++        android:layout_margin="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="85"
++            android:minWidth="150dp"
++            android:text="Ade"
++            android:textAppearance="?android:textAppearanceLarge" />
++
++
++        <TextView
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_weight="15"
++            android:minWidth="25dp"
++            android:text="Cold"
++            android:textAppearance="?android:textAppearanceSmall" />
++    </LinearLayout>
++
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_splash.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_splash.xml	(revision )
++++ app/src/main/res/layout/activity_splash.xml	(revision )
+@@ -0,0 +1,28 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:paddingBottom="@dimen/activity_vertical_margin"
++    android:paddingLeft="@dimen/activity_horizontal_margin"
++    android:paddingRight="@dimen/activity_horizontal_margin"
++    android:paddingTop="@dimen/activity_vertical_margin"
++    android:orientation="vertical"
++    tools:context="com.example.cafe.khuffee.activities.SplashActivity">
++    <ImageView
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="90"
++        android:layout_gravity="bottom|center"
++        android:id = "@+id/img_splash"/>
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="10"
++        android:layout_gravity="top|center"
++        android:id="@+id/tv_splash"
++        android:gravity="center_horizontal"
++        android:layout_alignBottom="@id/img_splash"/>
++
++</LinearLayout>
+Index: .idea/runConfigurations.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/runConfigurations.xml	(revision )
++++ .idea/runConfigurations.xml	(revision )
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RunConfigurationProducerService">
++    <option name="ignoredProducers">
++      <set>
++        <option value="org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer" />
++        <option value="org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer" />
++        <option value="org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer" />
++      </set>
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: gradlew
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- gradlew	(revision )
++++ gradlew	(revision )
+@@ -0,0 +1,160 @@
++#!/usr/bin/env bash
++
++##############################################################################
++##
++##  Gradle start up script for UN*X
++##
++##############################################################################
++
++# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
++DEFAULT_JVM_OPTS=""
++
++APP_NAME="Gradle"
++APP_BASE_NAME=`basename "$0"`
++
++# Use the maximum available, or set MAX_FD != -1 to use that value.
++MAX_FD="maximum"
++
++warn ( ) {
++    echo "$*"
++}
++
++die ( ) {
++    echo
++    echo "$*"
++    echo
++    exit 1
++}
++
++# OS specific support (must be 'true' or 'false').
++cygwin=false
++msys=false
++darwin=false
++case "`uname`" in
++  CYGWIN* )
++    cygwin=true
++    ;;
++  Darwin* )
++    darwin=true
++    ;;
++  MINGW* )
++    msys=true
++    ;;
++esac
++
++# Attempt to set APP_HOME
++# Resolve links: $0 may be a link
++PRG="$0"
++# Need this for relative symlinks.
++while [ -h "$PRG" ] ; do
++    ls=`ls -ld "$PRG"`
++    link=`expr "$ls" : '.*-> \(.*\)$'`
++    if expr "$link" : '/.*' > /dev/null; then
++        PRG="$link"
++    else
++        PRG=`dirname "$PRG"`"/$link"
++    fi
++done
++SAVED="`pwd`"
++cd "`dirname \"$PRG\"`/" >/dev/null
++APP_HOME="`pwd -P`"
++cd "$SAVED" >/dev/null
++
++CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
++
++# Determine the Java command to use to start the JVM.
++if [ -n "$JAVA_HOME" ] ; then
++    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
++        # IBM's JDK on AIX uses strange locations for the executables
++        JAVACMD="$JAVA_HOME/jre/sh/java"
++    else
++        JAVACMD="$JAVA_HOME/bin/java"
++    fi
++    if [ ! -x "$JAVACMD" ] ; then
++        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
++
++Please set the JAVA_HOME variable in your environment to match the
++location of your Java installation."
++    fi
++else
++    JAVACMD="java"
++    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
++
++Please set the JAVA_HOME variable in your environment to match the
++location of your Java installation."
++fi
++
++# Increase the maximum file descriptors if we can.
++if [ "$cygwin" = "false" -a "$darwin" = "false" ] ; then
++    MAX_FD_LIMIT=`ulimit -H -n`
++    if [ $? -eq 0 ] ; then
++        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
++            MAX_FD="$MAX_FD_LIMIT"
++        fi
++        ulimit -n $MAX_FD
++        if [ $? -ne 0 ] ; then
++            warn "Could not set maximum file descriptor limit: $MAX_FD"
++        fi
++    else
++        warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
++    fi
++fi
++
++# For Darwin, add options to specify how the application appears in the dock
++if $darwin; then
++    GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_NAME\" \"-Xdock:icon=$APP_HOME/media/gradle.icns\""
++fi
++
++# For Cygwin, switch paths to Windows format before running java
++if $cygwin ; then
++    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
++    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
++    JAVACMD=`cygpath --unix "$JAVACMD"`
++
++    # We build the pattern for arguments to be converted via cygpath
++    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
++    SEP=""
++    for dir in $ROOTDIRSRAW ; do
++        ROOTDIRS="$ROOTDIRS$SEP$dir"
++        SEP="|"
++    done
++    OURCYGPATTERN="(^($ROOTDIRS))"
++    # Add a user-defined pattern to the cygpath arguments
++    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
++        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
++    fi
++    # Now convert the arguments - kludge to limit ourselves to /bin/sh
++    i=0
++    for arg in "$@" ; do
++        CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
++        CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
++
++        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ] ; then                    ### Added a condition
++            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
++        else
++            eval `echo args$i`="\"$arg\""
++        fi
++        i=$((i+1))
++    done
++    case $i in
++        (0) set -- ;;
++        (1) set -- "$args0" ;;
++        (2) set -- "$args0" "$args1" ;;
++        (3) set -- "$args0" "$args1" "$args2" ;;
++        (4) set -- "$args0" "$args1" "$args2" "$args3" ;;
++        (5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
++        (6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
++        (7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" ;;
++        (8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
++        (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
++    esac
++fi
++
++# Split up the JVM_OPTS And GRADLE_OPTS values into an array, following the shell quoting and substitution rules
++function splitJvmOpts() {
++    JVM_OPTS=("$@")
++}
++eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS
++JVM_OPTS[${#JVM_OPTS[*]}]="-Dorg.gradle.appname=$APP_BASE_NAME"
++
++exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+Index: .idea/.name
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/.name	(revision )
++++ .idea/.name	(revision )
+@@ -0,0 +1,1 @@
++Khuffee_ver3.1
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/adapters/MyPageAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/adapters/MyPageAdapter.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/adapters/MyPageAdapter.java	(revision )
+@@ -0,0 +1,78 @@
++package com.example.cafe.khuffee.adapters;
++
++import android.support.v4.app.Fragment;
++import android.support.v4.app.FragmentManager;
++import android.support.v4.app.FragmentPagerAdapter;
++import android.util.SparseArray;
++import android.view.ViewGroup;
++
++import com.example.cafe.khuffee.fragments.CouponFragment;
++import com.example.cafe.khuffee.fragments.HomeFragment;
++import com.example.cafe.khuffee.fragments.MenuFragment;
++import com.example.cafe.khuffee.fragments.OrderFragment;
++
++/**
++ * Created by lee on 2016-05-29.
++ */
++public class MyPageAdapter extends FragmentPagerAdapter {
++    SparseArray<Fragment> registeredFragments = new SparseArray<>();
++    public MyPageAdapter(FragmentManager fm) {
++        super(fm);
++    }
++    @Override
++    public Fragment getItem(int position) {
++        switch (position) {
++            case 0:
++                return new HomeFragment();
++            case 1:
++                return new MenuFragment();
++            case 2:
++                return new OrderFragment();
++            case 3:
++                return new CouponFragment();
++        }
++        return null;
++    }
++
++    @Override
++    public Object instantiateItem(ViewGroup container, int position) {
++        Fragment fragment = (Fragment)super.instantiateItem(container, position);
++        registeredFragments.put(position, fragment);
++        return fragment;
++    }
++
++    public Fragment getRegisteredFragment(int position) {
++        return registeredFragments.get(position);
++    }
++
++    @Override
++    public void destroyItem(ViewGroup container, int position, Object object) {
++        registeredFragments.remove(position);
++        super.destroyItem(container, position, object);
++    }
++
++    @Override
++    public int getCount() {
++        return 4;
++    }
++
++    @Override
++    public CharSequence getPageTitle(int position) {
++        String title = null;
++        switch (position) {
++            case 0:
++                title = HomeFragment.name;
++                break;
++            case 1:
++                title = MenuFragment.name;
++                break;
++            case 2:
++                title = OrderFragment.name;
++                break;
++            case 3:
++                title = CouponFragment.name;
++                break;
++        }
++        return title;
++    }
++}
+\ No newline at end of file
+Index: app/src/main/res/values/styles.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/styles.xml	(revision )
++++ app/src/main/res/values/styles.xml	(revision )
+@@ -0,0 +1,12 @@
++<resources>
++
++    <!-- Base application theme. -->
++    <style name="DefaultAppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
++        <!-- Customize your theme here. -->
++    </style>
++
++    <style name="DefaultAppTheme.NoActionBar">
++        <item name="windowActionBar">false</item>
++        <item name="windowNoTitle">true</item>
++    </style>
++</resources>
+Index: classes2/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- classes2/build.gradle	(revision )
++++ classes2/build.gradle	(revision )
+@@ -0,0 +1,2 @@
++configurations.create("default")
++artifacts.add("default", file('classes2.jar'))
+\ No newline at end of file
+Index: gradle/wrapper/gradle-wrapper.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>x-windows-949
+===================================================================
+--- gradle/wrapper/gradle-wrapper.properties	(revision )
++++ gradle/wrapper/gradle-wrapper.properties	(revision )
+@@ -0,0 +1,6 @@
++#Wed Oct 21 11:34:03 PDT 2015
++distributionBase=GRADLE_USER_HOME
++distributionPath=wrapper/dists
++zipStoreBase=GRADLE_USER_HOME
++zipStorePath=wrapper/dists
++distributionUrl=https\://services.gradle.org/distributions/gradle-2.8-all.zip
+Index: app/src/main/java/com/example/cafe/khuffee/dialogs/MyDialogListener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/dialogs/MyDialogListener.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/dialogs/MyDialogListener.java	(revision )
+@@ -0,0 +1,13 @@
++package com.example.cafe.khuffee.dialogs;
++
++
++import classes.User;
++
++/**
++ * Created by ckkk on 2016-05-30.
++ */
++public  interface MyDialogListener {
++    void cancelDialog();
++    void signinDialog(User user);
++    void signupDialog();
++}
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/modules.xml	(revision )
++++ .idea/modules.xml	(revision )
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/Classes3/Classes3.iml" filepath="$PROJECT_DIR$/Classes3/Classes3.iml" />
++      <module fileurl="file://$PROJECT_DIR$/Khuffee_ver3.1.iml" filepath="$PROJECT_DIR$/Khuffee_ver3.1.iml" />
++      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/AndroidManifest.xml	(revision )
++++ app/src/main/AndroidManifest.xml	(revision )
+@@ -0,0 +1,26 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.example.cafe.khuffee">
++
++    <uses-permission android:name="android.permission.INTERNET" />
++
++    <application
++        android:allowBackup="true"
++        android:icon="@mipmap/ic_launcher"
++        android:label="@string/app_name"
++        android:supportsRtl="true"
++        android:theme="@style/DefaultAppTheme.NoActionBar">
++        <activity android:name=".activities.MainActivity" />
++        <activity android:name=".activities.SplashActivity">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++
++                <category android:name="android.intent.category.LAUNCHER" />
++            </intent-filter>
++        </activity>
++        <activity android:name=".activities.SignupActivity"
++            android:windowSoftInputMode="stateAlwaysVisible">
++        </activity>
++    </application>
++
++</manifest>
+Index: app/src/main/java/com/example/cafe/khuffee/fragments/CouponFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/fragments/CouponFragment.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/fragments/CouponFragment.java	(revision )
+@@ -0,0 +1,70 @@
++package com.example.cafe.khuffee.fragments;
++
++import android.os.Bundle;
++import android.support.annotation.Nullable;
++import android.support.v4.app.Fragment;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.Button;
++import android.widget.LinearLayout;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.activities.MainActivity;
++
++import classes.User;
++
++/**
++ * Created by lee on 2016-05-29.
++ */
++public class CouponFragment extends Fragment implements View.OnClickListener{
++    public static final String name = "Coupon";
++    private User user;
++    private boolean flg;
++    private LinearLayout lnStranger;
++    private Button btnSignin;
++    private Button btnSignup;
++
++    private LinearLayout lnUser;
++
++    @Nullable
++    @Override
++    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
++        View view = inflater.inflate(R.layout.fragment_coupon, container, false);
++        return view;
++    }
++
++    @Override
++    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
++        super.onViewCreated(view, savedInstanceState);
++        lnStranger = (LinearLayout)view.findViewById(R.id.ln_stranger_c);
++        lnUser = (LinearLayout)view.findViewById(R.id.ln_user_c);
++
++        if(((MainActivity)getActivity()).getUser() == null) {
++            ((ViewGroup) view).removeView(lnUser);
++            btnSignin = (Button)view.findViewById(R.id.btn_sign_in_c);
++            btnSignup = (Button)view.findViewById(R.id.btn_sign_up_c);
++            btnSignin.setOnClickListener(this);
++            btnSignup.setOnClickListener(this);
++        }
++        else {
++            ((ViewGroup) view).removeView(lnStranger);
++        }
++    }
++
++    /**
++     * Called when a view has been clicked.
++     *
++     * @param v The view that was clicked.
++     */
++    @Override
++    public void onClick(View v) {
++        if(v.getId() == R.id.btn_sign_in_c) {
++            ((MainActivity) getActivity()).getMyDialog().show();
++        }
++        else if(v.getId() == R.id.btn_sign_up_c) {
++            ((MainActivity)getActivity()).startSignupActivity();
++        }
++
++    }
++}
+Index: app/src/main/res/layout/login_dialog.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/login_dialog.xml	(revision )
++++ app/src/main/res/layout/login_dialog.xml	(revision )
+@@ -0,0 +1,93 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="#ffffff"
++    android:minWidth="400dp"
++    android:orientation="vertical"
++    android:padding="15dp">
++
++    <TextView
++        android:id="@+id/tv_title"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_margin="5dp"
++        android:textAlignment="center"
++        android:textAppearance="?android:attr/textAppearanceLarge"
++        android:textColor="@color/colorKhuffee" />
++
++    <View
++        android:layout_width="match_parent"
++        android:layout_height="2dp"
++        android:layout_marginBottom="10dp"
++        android:background="#ff909090" />
++
++    <TextView
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginTop="10dp"
++        android:text="Username"
++        android:textAppearance="?android:textAppearanceMedium"
++        android:textColor="@color/colorKhuffee" />
++
++    <EditText
++        android:id="@+id/edit_id"
++        android:layout_width="match_parent"
++        android:inputType="textVisiblePassword"
++        android:layout_height="50dp" />
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_marginTop="10dp"
++        android:orientation="horizontal">
++
++        <TextView
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Password"
++            android:textAppearance="?android:textAppearanceMedium"
++            android:textColor="@color/colorKhuffee" />
++
++        <TextView
++            android:id="@+id/tv_search"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:layout_gravity="right"
++            android:clickable="true"
++            android:gravity="right"
++            android:text="Forgot Password?"
++            android:textAppearance="?android:textAppearanceMedium"
++            android:textColor="@color/RoyalBlue" />
++    </LinearLayout>
++
++    <EditText
++        android:id="@+id/edit_pass"
++        android:layout_width="match_parent"
++        android:layout_height="50dp"
++        android:inputType="textPassword"/>
++
++    <Button
++        android:id="@+id/btn_sign_in"
++        android:layout_width="match_parent"
++        android:layout_height="50dp"
++        android:layout_marginTop="20dp"
++        android:background="@color/colorSignIn"
++        android:gravity="center"
++        android:text="Sign in"
++        android:textColor="@color/White"
++        android:textAppearance="?android:textAppearanceLarge"/>
++
++    <TextView
++        android:id="@+id/tv_sign_up"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_gravity="right"
++        android:gravity="right"
++        android:paddingTop="15dp"
++        android:clickable="true"
++        android:text="Create an account"
++        android:textColor="@color/RoyalBlue"
++        android:textAppearance="?android:textAppearanceMedium"/>
++
++</LinearLayout>
+Index: gradlew.bat
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- gradlew.bat	(revision )
++++ gradlew.bat	(revision )
+@@ -0,0 +1,90 @@
++@if "%DEBUG%" == "" @echo off
++@rem ##########################################################################
++@rem
++@rem  Gradle startup script for Windows
++@rem
++@rem ##########################################################################
++
++@rem Set local scope for the variables with windows NT shell
++if "%OS%"=="Windows_NT" setlocal
++
++@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
++set DEFAULT_JVM_OPTS=
++
++set DIRNAME=%~dp0
++if "%DIRNAME%" == "" set DIRNAME=.
++set APP_BASE_NAME=%~n0
++set APP_HOME=%DIRNAME%
++
++@rem Find java.exe
++if defined JAVA_HOME goto findJavaFromJavaHome
++
++set JAVA_EXE=java.exe
++%JAVA_EXE% -version >NUL 2>&1
++if "%ERRORLEVEL%" == "0" goto init
++
++echo.
++echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
++echo.
++echo Please set the JAVA_HOME variable in your environment to match the
++echo location of your Java installation.
++
++goto fail
++
++:findJavaFromJavaHome
++set JAVA_HOME=%JAVA_HOME:"=%
++set JAVA_EXE=%JAVA_HOME%/bin/java.exe
++
++if exist "%JAVA_EXE%" goto init
++
++echo.
++echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
++echo.
++echo Please set the JAVA_HOME variable in your environment to match the
++echo location of your Java installation.
++
++goto fail
++
++:init
++@rem Get command-line arguments, handling Windowz variants
++
++if not "%OS%" == "Windows_NT" goto win9xME_args
++if "%@eval[2+2]" == "4" goto 4NT_args
++
++:win9xME_args
++@rem Slurp the command line arguments.
++set CMD_LINE_ARGS=
++set _SKIP=2
++
++:win9xME_args_slurp
++if "x%~1" == "x" goto execute
++
++set CMD_LINE_ARGS=%*
++goto execute
++
++:4NT_args
++@rem Get arguments from the 4NT Shell from JP Software
++set CMD_LINE_ARGS=%$
++
++:execute
++@rem Setup the command line
++
++set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
++
++@rem Execute Gradle
++"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %CMD_LINE_ARGS%
++
++:end
++@rem End local scope for the variables with windows NT shell
++if "%ERRORLEVEL%"=="0" goto mainEnd
++
++:fail
++rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
++rem the _cmd.exe /c_ return code!
++if  not "" == "%GRADLE_EXIT_CONSOLE%" exit 1
++exit /b 1
++
++:mainEnd
++if "%OS%"=="Windows_NT" endlocal
++
++:omega
+Index: app/src/main/java/com/example/cafe/khuffee/activities/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/activities/MainActivity.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/activities/MainActivity.java	(revision )
+@@ -0,0 +1,125 @@
++package com.example.cafe.khuffee.activities;
++
++import android.content.Intent;
++import android.graphics.Color;
++import android.os.Bundle;
++import android.support.v4.app.Fragment;
++import android.support.v4.app.FragmentActivity;
++import android.support.v4.app.FragmentTransaction;
++import android.support.v4.view.PagerTabStrip;
++import android.support.v4.view.ViewPager;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.adapters.MyPageAdapter;
++import com.example.cafe.khuffee.dialogs.MyDialog;
++import com.example.cafe.khuffee.dialogs.MyDialogListener;
++import com.example.cafe.khuffee.network.Connection;
++
++import java.util.ArrayList;
++
++import classes.Menuitem;
++import classes.User;
++
++
++public class MainActivity extends FragmentActivity {
++    private static final int code_FROM_SIGNUP_ACTIVITY = 90;        //SignuoActivity code
++
++    private User user;
++    private ArrayList<Menuitem> menuitems;
++    private ViewPager viewPager;
++    private MyPageAdapter pagerAdapter;
++    private PagerTabStrip pagerTabStrip;
++
++    private MyDialog signinDialog;
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.activity_main);
++
++        //SplashActivity로부터 온 data 받기
++        Intent intent = getIntent();
++        user = (User)intent.getSerializableExtra("user");
++        menuitems = (ArrayList<Menuitem>)intent.getSerializableExtra("menuitems");
++
++        //MainActivity swipe view setting
++        pagerAdapter = new MyPageAdapter(getSupportFragmentManager());
++        viewPager = (ViewPager)findViewById(R.id.pager);
++        viewPager.setAdapter(pagerAdapter);
++
++        //MainActivity tab setting
++        pagerTabStrip = (PagerTabStrip)findViewById(R.id.pager_tab);
++        pagerTabStrip.setTextColor(Color.WHITE);
++
++    }
++
++    public User getUser() {
++        return user;
++    }
++
++    public void setUser(User user) {
++        this.user = user;
++    }
++
++    public ArrayList<Menuitem> getMenuitems() {
++        return menuitems;
++    }
++
++    public MyDialog getMyDialog() {
++        if(signinDialog == null) {
++            signinDialog = new MyDialog(MainActivity.this, "Sign in");
++
++            //다이어로그 interface 구현
++            signinDialog.setDialogListener(new MyDialogListener() {
++                @Override
++                public void cancelDialog() {
++                }
++
++                @Override
++                public void signinDialog(User user) {
++                    MainActivity.this.setUser(user);
++                    refreshFragment();
++                }
++
++                @Override
++                public void signupDialog() {
++                    startSignupActivity();
++                }
++            });
++        }
++        return signinDialog;
++    }
++
++    public void startSignupActivity() {
++        Intent intent = new Intent(MainActivity.this, SignupActivity.class);
++        startActivityForResult(intent, code_FROM_SIGNUP_ACTIVITY);
++
++    }
++
++    @Override
++    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
++        super.onActivityResult(requestCode, resultCode, data);
++        if(resultCode == RESULT_CANCELED) {
++            return;
++        }
++        switch (requestCode) {
++            case  code_FROM_SIGNUP_ACTIVITY:
++                user = (User)data.getSerializableExtra("user");
++                refreshFragment();
++                break;
++        }
++    }
++
++    private void refreshFragment() {
++        Fragment fr = pagerAdapter.getRegisteredFragment(2);                        //order fragment
++        Fragment fr2 = pagerAdapter.getRegisteredFragment(3);                       //coupon fragment
++
++        //fragment refresh
++        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
++        ft.detach(fr);
++        ft.attach(fr);
++        ft.detach(fr2);
++        ft.attach(fr2);
++        ft.commit();
++    }
++}
+Index: app/src/main/java/com/example/cafe/khuffee/database/Dao.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/database/Dao.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/database/Dao.java	(revision )
+@@ -0,0 +1,114 @@
++package com.example.cafe.khuffee.database;
++
++import android.content.ContentValues;
++import android.content.Context;
++import android.database.Cursor;
++
++
++import java.sql.Date;
++import java.text.SimpleDateFormat;
++import java.util.ArrayList;
++
++import classes.Menuitem;
++import classes.User;
++
++
++/**
++ * Created by ckkk on 2016-05-28.
++ */
++public class Dao {
++    private DatabaseOpenHelper databaseOpenHelper;
++
++    public Dao(Context context) {
++        databaseOpenHelper = DatabaseOpenHelper.getmInstance(context);
++    }
++
++    public int getVersion() {
++        return databaseOpenHelper.getVersion();
++    }
++    public void close() {
++        databaseOpenHelper.close();
++    }
++
++    public long insertMenuitem(Menuitem menuitem) {
++        ContentValues contentValues = new ContentValues();
++        contentValues.put(Databases.MenuitemTable.COLUMN_TYPE, menuitem.getmType());
++        contentValues.put(Databases.MenuitemTable.COLUMN_NAME_KOR, menuitem.getmNameKor());
++        contentValues.put(Databases.MenuitemTable.COLUMN_NAME_ENG, menuitem.getmNameEng());
++        contentValues.put(Databases.MenuitemTable.COLUMN_PRICE_HOT, menuitem.getmPriceHot());
++        contentValues.put(Databases.MenuitemTable.COLUMN_PRICE_COLD, menuitem.getmPriceCold());
++
++        return databaseOpenHelper.insert(Databases.MenuitemTable.TABLE_NAME, contentValues);
++    }
++
++    public ArrayList<Menuitem> getMenuitem() {
++        ArrayList<Menuitem> menuitems = new ArrayList<>();
++        String sql = "SELECT * FROM " + Databases.MenuitemTable.TABLE_NAME + ";";
++        Cursor cursor = databaseOpenHelper.get(sql);
++
++        if(cursor.getCount() > 0) {
++            cursor.moveToFirst();
++            while(cursor.moveToNext()) {
++                menuitems.add(new Menuitem(cursor.getInt(cursor.getColumnIndex(Databases.MenuitemTable.COLUMN_TYPE)),
++                        cursor.getString(cursor.getColumnIndex(Databases.MenuitemTable.COLUMN_NAME_KOR)),
++                        cursor.getString(cursor.getColumnIndex(Databases.MenuitemTable.COLUMN_NAME_ENG)),
++                        cursor.getInt(cursor.getColumnIndex(Databases.MenuitemTable.COLUMN_PRICE_HOT)),
++                        cursor.getInt(cursor.getColumnIndex(Databases.MenuitemTable.COLUMN_PRICE_COLD))));
++            }
++        }
++
++        return menuitems;
++    }
++
++    public String[] getLog() {
++        String[] log = null;
++        String sql = "SELECT * FROM " + Databases.LogTable.TABLE_NAME + " ORDER BY " + Databases.LogTable.COLUMN_DATE + " DESC LIMIT 1;";
++        Cursor cursor = databaseOpenHelper.get(sql);
++        if(cursor.getCount() > 0) {
++            cursor.moveToFirst();
++            log = new String[2];
++            log[0] = cursor.getString(cursor.getColumnIndex(Databases.LogTable.COLUMN_ID));
++            log[1] = cursor.getString(cursor.getColumnIndex(Databases.LogTable.COLUMN_PASS));
++        }
++        return log;
++    }
++
++    public long insertLog(String id, String pass) {
++        Date date = new Date(System.currentTimeMillis());
++        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
++        ContentValues contentValues = new ContentValues();
++        contentValues.put(Databases.LogTable.COLUMN_ID, id);
++        contentValues.put(Databases.LogTable.COLUMN_PASS, pass);
++        contentValues.put(Databases.LogTable.COLUMN_DATE, dateFormat.format(date));
++
++        return databaseOpenHelper.insert(Databases.LogTable.TABLE_NAME, contentValues);
++    }
++
++    public User getUser(String user_id) {
++        User user = null;
++        String sql = "SELECT * FROM " + Databases.UserTable.TABLE_NAME + " WHERE "
++                + Databases.UserTable.COLUMN_ID + " = '" + user_id + "';";
++//        String sql = "SELECT * FROM " + Databases.UserTable.TABLE_NAME + ";";
++        Cursor cursor = databaseOpenHelper.get(sql);
++        if(cursor.getCount() > 0) {
++            cursor.moveToFirst();
++            user = new User(cursor.getString(cursor.getColumnIndex(Databases.UserTable.COLUMN_ID)),
++                    cursor.getString(cursor.getColumnIndex(Databases.UserTable.COLUMN_PASS)),
++                    cursor.getString(cursor.getColumnIndex(Databases.UserTable.COLUMN_NAME)),
++                    cursor.getString(cursor.getColumnIndex(Databases.UserTable.COLUMN_PHONE)),
++                    cursor.getInt(cursor.getColumnIndex(Databases.UserTable.COLUMN_COUPON)));
++        }
++        return user;
++    }
++
++    public long insertUser(User user) {
++        ContentValues contentValues = new ContentValues();
++        contentValues.put(Databases.UserTable.COLUMN_ID, user.getmId());
++        contentValues.put(Databases.UserTable.COLUMN_PASS, user.getmPassword());
++        contentValues.put(Databases.UserTable.COLUMN_NAME, user.getmName());
++        contentValues.put(Databases.UserTable.COLUMN_PHONE, user.getmCall());
++        contentValues.put(Databases.UserTable.COLUMN_COUPON, user.getmCntCoupon());
++
++        return databaseOpenHelper.insert(Databases.UserTable.TABLE_NAME, contentValues);
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/fragments/MenuFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/fragments/MenuFragment.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/fragments/MenuFragment.java	(revision )
+@@ -0,0 +1,33 @@
++package com.example.cafe.khuffee.fragments;
++
++import android.os.Bundle;
++import android.support.annotation.Nullable;
++import android.support.v4.app.Fragment;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.activities.MainActivity;
++import classes.Menuitem;
++
++import java.util.ArrayList;
++
++
++
++/**
++ * Created by lee on 2016-05-29.
++ */
++public class MenuFragment extends Fragment {
++    public static final String name = "Menu";
++    private ArrayList<Menuitem> menuitems;
++
++    @Nullable
++    @Override
++    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
++        View view= inflater.inflate(R.layout.fragment_menu, container, false);
++        menuitems = new ArrayList<>();
++        menuitems = ((MainActivity) getActivity()).getMenuitems();
++        return view;
++    }
++}
+Index: .idea/encodings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/encodings.xml	(revision )
++++ .idea/encodings.xml	(revision )
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Encoding">
++    <file url="PROJECT" charset="UTF-8" />
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/test/java/com/example/cafe/khuffee/ExampleUnitTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/test/java/com/example/cafe/khuffee/ExampleUnitTest.java	(revision )
++++ app/src/test/java/com/example/cafe/khuffee/ExampleUnitTest.java	(revision )
+@@ -0,0 +1,15 @@
++package com.example.cafe.khuffee;
++
++import org.junit.Test;
++
++import static org.junit.Assert.*;
++
++/**
++ * To work on unit tests, switch the Test Artifact in the Build Variants view.
++ */
++public class ExampleUnitTest {
++    @Test
++    public void addition_isCorrect() throws Exception {
++        assertEquals(4, 2 + 2);
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/dialogs/MyDialog.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/dialogs/MyDialog.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/dialogs/MyDialog.java	(revision )
+@@ -0,0 +1,159 @@
++package com.example.cafe.khuffee.dialogs;
++
++import android.app.Dialog;
++import android.content.Context;
++import android.graphics.Rect;
++import android.os.AsyncTask;
++import android.os.Bundle;
++import android.text.InputFilter;
++import android.text.Spanned;
++import android.util.Log;
++import android.view.View;
++import android.view.Window;
++import android.view.WindowManager;
++import android.widget.Button;
++import android.widget.EditText;
++import android.widget.TextView;
++import android.widget.Toast;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.database.Dao;
++import com.example.cafe.khuffee.network.NetworkHandler;
++
++import java.util.regex.Pattern;
++
++import classes.User;
++
++
++/**
++ * Created by lee on 2016-05-29.
++ */
++public class MyDialog extends Dialog implements View.OnClickListener {
++    private String title;
++    private EditText editId;
++    private EditText editPass;
++    private Button btnSignIn;
++    private TextView tvTitle;
++    private TextView tvSignUp;
++    private TextView tvSearch;
++
++    private User user;
++    private MyDialogListener dialogListener;
++
++    private NetworkHandler networkHandler;
++
++    public MyDialog(Context context, String title) {
++        super(context, android.R.style.Theme_Translucent_NoTitleBar);
++        this.title = title;
++        networkHandler = new NetworkHandler();
++    }
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++
++        Rect displayRec = new Rect();
++        Window window = this.getWindow();
++        window.getDecorView().getWindowVisibleDisplayFrame(displayRec);
++
++        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
++        layoutParams.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
++        layoutParams.dimAmount = 0.8f;
++        layoutParams.width = (int) (displayRec.width() * 0.9f);
++        layoutParams.height = (int) (displayRec.height() * 0.6f);
++        getWindow().setAttributes(layoutParams);
++
++        setContentView(R.layout.login_dialog);
++        editId = (EditText) findViewById(R.id.edit_id);
++        editPass = (EditText) findViewById(R.id.edit_pass);
++        btnSignIn = (Button) findViewById(R.id.btn_sign_in);
++        tvTitle = (TextView) findViewById(R.id.tv_title);
++        tvSignUp = (TextView) findViewById(R.id.tv_sign_up);
++        tvSearch = (TextView) findViewById(R.id.tv_search);
++
++        btnSignIn.setOnClickListener(this);
++        tvSignUp.setOnClickListener(this);
++        tvSearch.setOnClickListener(this);
++
++        tvTitle.setText(title);
++        editId.setFilters(new InputFilter[]{new MyInputFilter(getContext())});
++    }
++
++    public MyDialogListener getDialogListener() {
++        return dialogListener;
++    }
++
++    public void setDialogListener(MyDialogListener dialogListener) {
++        this.dialogListener = dialogListener;
++    }
++
++    /**
++     * Called when a view has been clicked.
++     *
++     * @param v The view that was clicked.
++     */
++    @Override
++    public void onClick(View v) {
++        if (v.getId() == R.id.btn_sign_in) {
++            Log.e("click", "sign in");
++            if (signIn()) {
++                Toast.makeText(this.getContext(), "sign in", Toast.LENGTH_SHORT).show();
++                dialogListener.signinDialog(user);
++                this.dismiss();
++            } else {
++                Toast.makeText(this.getContext(), "Incorrect username or password", Toast.LENGTH_SHORT).show();
++            }
++        } else if (v.getId() == R.id.tv_search) {
++            this.dismiss();
++            dialogListener.cancelDialog();
++        } else if (v.getId() == R.id.tv_sign_up) {
++            this.dismiss();
++            dialogListener.signupDialog();
++        }
++        return;
++    }
++
++    private boolean signIn() {
++        String id = editId.getText().toString();
++        String pass = editPass.getText().toString();
++
++        if (id.length() <= 0 || pass.length() <= 0) {
++            return false;
++        } else if (id.matches(".*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*")) {
++            return false;
++        }
++        //dao.insertUser(new User("aa", "1234", new ArrayList<Coupon>()));
++
++        networkHandler.signin(id, pass);
++
++        while (networkHandler.isWorking()) {}
++
++        if(networkHandler.getSignIn()) {
++            user = networkHandler.getUser();
++            return true;
++        }
++        else {
++            Toast.makeText(this.getContext(), networkHandler.getMessge(), Toast.LENGTH_SHORT).show();
++            return false;
++        }
++    }
++
++    private class MyInputFilter implements InputFilter {
++        private Context context;
++
++        MyInputFilter(Context context) {
++            this.context = context;
++        }
++
++        @Override
++        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
++            Pattern pattern = Pattern.compile("^[a-zA-Z0-9]+$");
++
++            if (source.equals("") || pattern.matcher(source).matches()) {
++                return source;
++            }
++            Toast.makeText(this.context, "Alphabet or Number", Toast.LENGTH_LONG).show();
++            return null;
++        }
++    }
++}
+Index: .idea/copyright/profiles_settings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/copyright/profiles_settings.xml	(revision )
++++ .idea/copyright/profiles_settings.xml	(revision )
+@@ -0,0 +1,3 @@
++<component name="CopyrightManager">
++  <settings default="" />
++</component>
+\ No newline at end of file
+Index: app/src/main/res/layout/fragment_order.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/fragment_order.xml	(revision )
++++ app/src/main/res/layout/fragment_order.xml	(revision )
+@@ -0,0 +1,100 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical">
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:id="@+id/ln_stranger_o"
++        android:orientation="vertical">
++
++        <TextView
++            android:layout_width="match_parent"
++            android:layout_height="0dp"
++            android:layout_weight="50"
++            android:layout_gravity="center|bottom"
++            android:gravity="center"
++            android:text="@string/restriction"
++            android:textIsSelectable="false"
++            android:textAppearance="?android:textAppearanceLarge"
++            android:textColor="@color/colorKhuffee"
++            android:padding="10dp"/>
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="0dp"
++            android:layout_weight="50"
++            android:padding="10dp"
++            android:orientation="horizontal">
++
++            <Button
++                android:layout_width="0dp"
++                android:layout_height="50dp"
++                android:layout_weight="50"
++                android:layout_marginLeft="20dp"
++                android:layout_marginRight="5dp"
++                android:layout_gravity="top|center"
++                android:padding="10dp"
++                android:background="@color/colorSignIn"
++                android:textColor="@color/White"
++                android:text="@string/sign_in"
++                android:textAllCaps="false"
++                android:id="@+id/btn_sign_in_o"/>
++
++            <Button
++                android:layout_width="0dp"
++                android:layout_height="50dp"
++                android:layout_weight="50"
++                android:layout_marginRight="20dp"
++                android:layout_marginLeft="5dp"
++                android:layout_gravity="top|center"
++                android:padding="10dp"
++                android:background="@color/colorSignup"
++                android:textColor="@color/colorKhuffee"
++                android:text="@string/sign_up"
++                android:textAllCaps="false"
++                android:id="@+id/btn_sign_up_o"/>
++        </LinearLayout>
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:id="@+id/ln_user_o"
++        android:orientation="vertical">
++        <TextView
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Order"
++            android:gravity="center"
++            android:layout_gravity="center"
++            android:textIsSelectable="false"
++            android:textSize="30dp"/>
++
++        <TextView
++            android:id="@+id/tv_menu1"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:gravity="center"
++            android:layout_gravity="center"
++            android:textIsSelectable="false"
++            android:textSize="30dp"/>
++
++        <TextView
++            android:id="@+id/tv_menu2"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:gravity="center"
++            android:layout_gravity="center"
++            android:textIsSelectable="false"
++            android:textSize="30dp"/>
++        <Button
++            android:id="@+id/btn_order"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="주문하기"/>
++
++    </LinearLayout>
++</LinearLayout>
+Index: app/src/androidTest/java/com/example/cafe/khuffee/ApplicationTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/androidTest/java/com/example/cafe/khuffee/ApplicationTest.java	(revision )
++++ app/src/androidTest/java/com/example/cafe/khuffee/ApplicationTest.java	(revision )
+@@ -0,0 +1,13 @@
++package com.example.cafe.khuffee;
++
++import android.app.Application;
++import android.test.ApplicationTestCase;
++
++/**
++ * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
++ */
++public class ApplicationTest extends ApplicationTestCase<Application> {
++    public ApplicationTest() {
++        super(Application.class);
++    }
++}
+\ No newline at end of file
+Index: app/src/main/res/drawable/border2.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/border2.xml	(revision )
++++ app/src/main/res/drawable/border2.xml	(revision )
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android"
++    android:shape="rectangle">
++    <stroke
++        android:width="2dp"
++        android:color="@color/colorKhuffee" />
++    <padding
++        android:bottom="4dp"
++        android:left="4dp"
++        android:right="4dp"
++        android:top="4dp">
++
++    </padding>
++</shape>
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/database/Databases.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/database/Databases.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/database/Databases.java	(revision )
+@@ -0,0 +1,33 @@
++package com.example.cafe.khuffee.database;
++
++import android.provider.BaseColumns;
++
++/**
++ * Created by ckkk on 2016-05-28.
++ */
++public class Databases {
++    public static final class MenuitemTable implements BaseColumns {
++        public static final String TABLE_NAME = "menuitem";
++        public static final String COLUMN_TYPE = "type";
++        public static final String COLUMN_NAME_KOR = "name_kor";
++        public static final String COLUMN_NAME_ENG = "name_eng";
++        public static final String COLUMN_PRICE_HOT = "price_hot";
++        public static final String COLUMN_PRICE_COLD = "price_cold";
++    }
++
++    public static final class LogTable implements BaseColumns {
++        public static final String TABLE_NAME = "log";
++        public static final String COLUMN_ID = "id";
++        public static final String COLUMN_PASS = "pass";
++        public static final String COLUMN_DATE = "date";
++    }
++
++    public static final class UserTable implements BaseColumns {
++        public static final String TABLE_NAME = "user";
++        public static final String COLUMN_ID = "id";
++        public static final String COLUMN_PASS = "password";
++        public static final String COLUMN_NAME = "name";
++        public static final String COLUMN_PHONE = "phone";
++        public static final String COLUMN_COUPON = "coupon";
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/network/NetworkHandlerInterface.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/network/NetworkHandlerInterface.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/network/NetworkHandlerInterface.java	(revision )
+@@ -0,0 +1,10 @@
++package com.example.cafe.khuffee.network;
++
++/**
++ * Created by lee on 2016-06-07.
++ */
++public interface NetworkHandlerInterface {
++    void checkID(boolean flg);
++    void insertUser(boolean flg);
++    void working(boolean flg);
++}
+Index: app/src/main/java/com/example/cafe/khuffee/activities/SignupActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/activities/SignupActivity.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/activities/SignupActivity.java	(revision )
+@@ -0,0 +1,175 @@
++package com.example.cafe.khuffee.activities;
++
++import android.content.Intent;
++import android.os.AsyncTask;
++import android.os.Bundle;
++import android.os.Handler;
++import android.os.Message;
++import android.support.v7.app.AppCompatActivity;
++import android.text.method.ScrollingMovementMethod;
++import android.util.Log;
++import android.view.MotionEvent;
++import android.view.View;
++import android.widget.Button;
++import android.widget.CheckBox;
++import android.widget.EditText;
++import android.widget.ScrollView;
++import android.widget.TextView;
++import android.widget.Toast;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.network.Connection;
++import com.example.cafe.khuffee.network.NetworkHandler;
++import com.example.cafe.khuffee.network.NetworkHandlerInterface;
++
++import java.io.IOException;
++import java.io.ObjectInputStream;
++import java.io.ObjectOutputStream;
++import java.lang.ref.WeakReference;
++import java.net.HttpURLConnection;
++import java.net.Socket;
++import java.net.URL;
++
++import classes.User;
++
++
++public class SignupActivity extends AppCompatActivity implements View.OnClickListener {
++    private TextView tvContract;
++    private CheckBox chboxAgree;
++    private EditText editId;
++    private EditText editPass;
++    private EditText editConfirm;
++    private EditText editName;
++    private EditText editCall;
++    private Button btnOk;
++    private ScrollView scrollWhole;
++
++    private User user;
++
++    private boolean flgCheckId;
++    private boolean flgInsertUser;
++    private boolean flgWorking;
++    private NetworkHandler networkHandler;
++
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.activity_signup);
++
++        tvContract = (TextView) findViewById(R.id.tv_contract);
++        tvContract.setMovementMethod(new ScrollingMovementMethod());
++
++        chboxAgree = (CheckBox) findViewById(R.id.chbox_agree);
++        editId = (EditText) findViewById(R.id.edit_id);
++        editPass = (EditText) findViewById(R.id.edit_pass);
++        editConfirm = (EditText) findViewById(R.id.edit_pass2);
++        editName = (EditText)findViewById(R.id.edit_name);
++        editCall = (EditText)findViewById(R.id.edit_call);
++
++        btnOk = (Button) findViewById(R.id.btn_ok);
++
++        scrollWhole = (ScrollView)findViewById(R.id.scroll_whole);
++
++        btnOk.setOnClickListener(this);
++
++
++        tvContract.setOnTouchListener(new View.OnTouchListener() {
++            @Override
++            public boolean onTouch(View v, MotionEvent event) {
++                scrollWhole.requestDisallowInterceptTouchEvent(true);
++                return false;
++            }
++        });
++
++        networkHandler = new NetworkHandler();
++    }
++
++    @Override
++    public void onClick(View v) {
++        if(v.getId() == R.id.btn_ok) {
++            int ret = 0x06;
++            String message = "필수항목을 입력해주세요.";
++            try {
++                ret = signUp();
++            } catch (IOException e) {
++                e.printStackTrace();
++            }
++            switch (ret) {
++                case 0x00:
++                    message = "회원가입이 완료되었습니다.";
++                    break;
++                case 0x01:
++                    message = "약관에 동의해야합니다.";
++                    break;
++                case 0x02:
++                    message = "비밀번호가 일치하지 않습니다.";
++                    break;
++                case 0x03:
++                    message = "이름을 입력하셔야 합니다.";
++                    break;
++                case 0x04:
++                    message = "전화번호를 입력하셔야 합니다";
++                    break;
++                case 0x05:
++                    message = "이미 존재하는 아이디입니다";
++                    break;
++            }
++            Toast.makeText(SignupActivity.this, message, Toast.LENGTH_SHORT).show();
++            if(ret == 0x00) {
++                finish();
++            }
++        }
++    }
++
++    private int signUp() throws IOException {
++        if(!chboxAgree.isChecked()) {
++            return 0x01;
++        }
++        if(editPass.getText().toString().compareTo(editConfirm.getText().toString()) != 0) {
++            return 0x02;
++        }
++        if(editName.getText().toString().length() == 0) {
++            return 0x03;
++        }
++        if(editCall.getText().toString().length() == 0) {
++            return 0x04;
++        }
++
++        networkHandler.checkID(editId.getText().toString());
++
++        while(networkHandler.isWorking()) {
++            Log.e("aa", "AA");
++        }
++
++        if(networkHandler.getCheckId()) {
++            return 0x05;
++        }
++
++        user = new User(editId.getText().toString(), editPass.getText().toString(), editName.getText().toString(), editCall.getText().toString(), 0);
++        networkHandler.insertUser(user);
++
++        while(networkHandler.isWorking()) {
++            Log.e("aa", "AA");
++        }
++
++        if(networkHandler.getInsertUser()) {
++            return 0x00;
++        }
++        return 0x06;
++    }
++
++    @Override
++    public void finish() {
++        Intent intent = new Intent();
++        if(user != null) {
++            intent.putExtra("user", user);
++            setResult(RESULT_OK, intent);
++        }
++        else {
++            setResult(RESULT_CANCELED);
++        }
++        super.finish();
++    }
++
++}
+Index: .gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .gitignore	(revision )
++++ .gitignore	(revision )
+@@ -0,0 +1,8 @@
++*.iml
++.gradle
++/local.properties
++/.idea/workspace.xml
++/.idea/libraries
++.DS_Store
++/build
++/captures
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/vcs.xml	(revision )
++++ .idea/vcs.xml	(revision )
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="$PROJECT_DIR$" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/res/layout/fragment_coupon.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/fragment_coupon.xml	(revision )
++++ app/src/main/res/layout/fragment_coupon.xml	(revision )
+@@ -0,0 +1,76 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical">
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:id="@+id/ln_stranger_c"
++        android:orientation="vertical">
++
++        <TextView
++            android:layout_width="match_parent"
++            android:layout_height="0dp"
++            android:layout_weight="50"
++            android:layout_gravity="center|bottom"
++            android:gravity="center"
++            android:text="@string/restriction"
++            android:textIsSelectable="false"
++            android:textAppearance="?android:textAppearanceLarge"
++            android:textColor="@color/colorKhuffee"
++            android:padding="10dp"/>
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="0dp"
++            android:layout_weight="50"
++            android:padding="10dp"
++            android:orientation="horizontal">
++
++            <Button
++                android:layout_width="0dp"
++                android:layout_height="50dp"
++                android:layout_weight="50"
++                android:layout_marginLeft="20dp"
++                android:layout_marginRight="5dp"
++                android:layout_gravity="top|center"
++                android:padding="10dp"
++                android:background="@color/colorSignIn"
++                android:textColor="@color/White"
++                android:text="@string/sign_in"
++                android:textAllCaps="false"
++                android:id="@+id/btn_sign_in_c"/>
++
++            <Button
++                android:layout_width="0dp"
++                android:layout_height="50dp"
++                android:layout_weight="50"
++                android:layout_marginRight="20dp"
++                android:layout_marginLeft="5dp"
++                android:layout_gravity="top|center"
++                android:padding="10dp"
++                android:background="@color/colorSignup"
++                android:textColor="@color/colorKhuffee"
++                android:text="@string/sign_up"
++                android:textAllCaps="false"
++                android:id="@+id/btn_sign_up_c"/>
++        </LinearLayout>
++    </LinearLayout>
++
++    <LinearLayout
++        android:id="@+id/ln_user_c"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent">
++
++        <TextView
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:layout_gravity="center_vertical"
++            android:text="Coupon"
++            android:textAlignment="center"
++            android:textIsSelectable="false"
++            android:textSize="30dp" />
++    </LinearLayout>
++</LinearLayout>
+Index: app/src/main/java/com/example/cafe/khuffee/fragments/OrderFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/fragments/OrderFragment.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/fragments/OrderFragment.java	(revision )
+@@ -0,0 +1,133 @@
++package com.example.cafe.khuffee.fragments;
++
++import android.content.Context;
++import android.os.Bundle;
++import android.support.annotation.Nullable;
++import android.support.v4.app.Fragment;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.Button;
++import android.widget.LinearLayout;
++import android.widget.TextView;
++
++import com.example.cafe.khuffee.R;
++import com.example.cafe.khuffee.activities.MainActivity;
++
++import java.util.ArrayList;
++import java.util.Date;
++
++import classes.Menuitem;
++import classes.Order;
++import classes.User;
++
++
++/**
++ * Created by lee on 2016-05-29.
++ */
++public class OrderFragment extends Fragment implements View.OnClickListener{
++    public static final String name = "Order";
++    private User user;
++    private boolean flg;
++    private LinearLayout lnStranger;
++    private Button btnSignin;
++    private Button btnSignup;
++
++    private LinearLayout lnUser;
++    private Button btnOrder;
++
++    private LinearLayout lnOrder;
++
++    private ArrayList<Menuitem> menuitems;
++
++    @Override
++    public void onAttach(Context context) {
++        super.onAttach(context);
++       // Log.e(name, "onAttach");
++    }
++
++    @Override
++    public void onCreate(@Nullable Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++       // Log.e(name, "onCreate");
++    }
++
++    @Nullable
++    @Override
++    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
++       // Log.e(name, "onCreateView");
++        View view = inflater.inflate(R.layout.fragment_order, container, false);
++        return view;
++    }
++
++    @Override
++    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
++        //Log.e(name, "onActivityCreated");
++        super.onActivityCreated(savedInstanceState);
++    }
++
++    @Override
++    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
++        super.onViewCreated(view, savedInstanceState);
++        //Log.e(name, "onViewCreate");
++        lnStranger = (LinearLayout)view.findViewById(R.id.ln_stranger_o);
++        lnUser = (LinearLayout)view.findViewById(R.id.ln_user_o);
++
++        ViewGroup orderViewGroup = (ViewGroup)view;
++
++        if(((MainActivity)getActivity()).getUser() == null) {
++            orderViewGroup.removeView(lnUser);
++            btnSignin = (Button)view.findViewById(R.id.btn_sign_in_o);
++            btnSignup = (Button)view.findViewById(R.id.btn_sign_up_o);
++            btnSignin.setOnClickListener(this);
++            btnSignup.setOnClickListener(this);
++        }
++        else {
++            orderViewGroup.removeView(lnStranger);
++            btnOrder = (Button)view.findViewById(R.id.btn_order);
++            TextView textView1 = (TextView)view.findViewById(R.id.tv_menu1);
++            TextView textView2 = (TextView)view.findViewById(R.id.tv_menu2);
++
++            menuitems = new ArrayList<>();
++            menuitems = ((MainActivity) getActivity()).getMenuitems();
++
++            Menuitem menuitem1 = menuitems.get(4);
++            Menuitem menuitem2 = menuitems.get(40);
++
++            ArrayList<Menuitem> orderItems = new ArrayList<>();
++            orderItems.add(menuitem1);
++            orderItems.add(menuitem2);
++
++
++
++        }
++
++    }
++
++    @Override
++    public void onStart() {
++        super.onStart();
++       // Log.e(name, "onStart");
++    }
++
++    @Override
++    public void onResume() {
++        super.onResume();
++       //Log.e(name, "onResume");
++    }
++
++    /**
++     * Called when a view has been clicked.
++     *
++     * @param v The view that was clicked.
++     */
++    @Override
++    public void onClick(View v) {
++        if(v.getId() == R.id.btn_sign_in_o) {
++           ((MainActivity) getActivity()).getMyDialog().show();
++        }
++        else if(v.getId() == R.id.btn_sign_up_o) {
++            ((MainActivity)getActivity()).startSignupActivity();
++        }
++    }
++}
+Index: app/src/main/res/values/colors.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/colors.xml	(revision )
++++ app/src/main/res/values/colors.xml	(revision )
+@@ -0,0 +1,146 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <color name="White">#FFFFFF</color>
++    <color name="Ivory">#FFFFF0</color>
++    <color name="LightYellow">#FFFFE0</color>
++    <color name="Yellow">#FFFF00</color>
++    <color name="Snow">#FFFAFA</color>
++    <color name="FloralWhite">#FFFAF0</color>
++    <color name="LemonChiffon">#FFFACD</color>
++    <color name="Cornsilk">#FFF8DC</color>
++    <color name="Seashell">#FFF5EE</color>
++    <color name="LavenderBlush">#FFF0F5</color>
++    <color name="PapayaWhip">#FFEFD5</color>
++    <color name="BlanchedAlmond">#FFEBCD</color>
++    <color name="MistyRose">#FFE4E1</color>
++    <color name="Bisque">#FFE4C4</color>
++    <color name="Moccasin">#FFE4B5</color>
++    <color name="NavajoWhite">#FFDEAD</color>
++    <color name="PeachPuff">#FFDAB9</color>
++    <color name="Gold">#FFD700</color>
++    <color name="Pink">#FFC0CB</color>
++    <color name="LightPink">#FFB6C1</color>
++    <color name="Orange">#FFA500</color>
++    <color name="LightSalmon">#FFA07A</color>
++    <color name="DarkOrange">#FF8C00</color>
++    <color name="Coral">#FF7F50</color>
++    <color name="HotPink">#FF69B4</color>
++    <color name="Tomato">#FF6347</color>
++    <color name="OrangeRed">#FF4500</color>
++    <color name="DeepPink">#FF1493</color>
++    <color name="Fuchsia">#FF00FF</color>
++    <color name="Magenta">#FF00FF</color>
++    <color name="Red">#FF0000</color>
++    <color name="OldLace">#FDF5E6</color>
++    <color name="LightGoldenrodYellow">#FAFAD2</color>
++    <color name="Linen">#FAF0E6</color>
++    <color name="AntiqueWhite">#FAEBD7</color>
++    <color name="Salmon">#FA8072</color>
++    <color name="GhostWhite">#F8F8FF</color>
++    <color name="MintCream">#F5FFFA</color>
++    <color name="WhiteSmoke">#F5F5F5</color>
++    <color name="Beige">#F5F5DC</color>
++    <color name="Wheat">#F5DEB3</color>
++    <color name="SandyBrown">#F4A460</color>
++    <color name="Azure">#F0FFFF</color>
++    <color name="Honeydew">#F0FFF0</color>
++    <color name="AliceBlue">#F0F8FF</color>
++    <color name="Khaki">#F0E68C</color>
++    <color name="LightCoral">#F08080</color>
++    <color name="PaleGoldenrod">#EEE8AA</color>
++    <color name="Violet">#EE82EE</color>
++    <color name="DarkSalmon">#E9967A</color>
++    <color name="Lavender">#E6E6FA</color>
++    <color name="LightCyan">#E0FFFF</color>
++    <color name="BurlyWood">#DEB887</color>
++    <color name="Plum">#DDA0DD</color>
++    <color name="Gainsboro">#DCDCDC</color>
++    <color name="Crimson">#DC143C</color>
++    <color name="PaleVioletRed">#DB7093</color>
++    <color name="Goldenrod">#DAA520</color>
++    <color name="Orchid">#DA70D6</color>
++    <color name="Thistle">#D8BFD8</color>
++    <color name="LightGrey">#D3D3D3</color>
++    <color name="Tan">#D2B48C</color>
++    <color name="Chocolate">#D2691E</color>
++    <color name="Peru">#CD853F</color>
++    <color name="IndianRed">#CD5C5C</color>
++    <color name="MediumVioletRed">#C71585</color>
++    <color name="Silver">#C0C0C0</color>
++    <color name="DarkKhaki">#BDB76B</color>
++    <color name="RosyBrown">#BC8F8F</color>
++    <color name="MediumOrchid">#BA55D3</color>
++    <color name="DarkGoldenrod">#B8860B</color>
++    <color name="FireBrick">#B22222</color>
++    <color name="PowderBlue">#B0E0E6</color>
++    <color name="LightSteelBlue">#B0C4DE</color>
++    <color name="PaleTurquoise">#AFEEEE</color>
++    <color name="GreenYellow">#ADFF2F</color>
++    <color name="LightBlue">#ADD8E6</color>
++    <color name="DarkGray">#A9A9A9</color>
++    <color name="Brown">#A52A2A</color>
++    <color name="Sienna">#A0522D</color>
++    <color name="YellowGreen">#9ACD32</color>
++    <color name="DarkOrchid">#9932CC</color>
++    <color name="PaleGreen">#98FB98</color>
++    <color name="DarkViolet">#9400D3</color>
++    <color name="MediumPurple">#9370DB</color>
++    <color name="LightGreen">#90EE90</color>
++    <color name="DarkSeaGreen">#8FBC8F</color>
++    <color name="SaddleBrown">#8B4513</color>
++    <color name="DarkMagenta">#8B008B</color>
++    <color name="DarkRed">#8B0000</color>
++    <color name="BlueViolet">#8A2BE2</color>
++    <color name="LightSkyBlue">#87CEFA</color>
++    <color name="SkyBlue">#87CEEB</color>
++    <color name="Gray">#808080</color>
++    <color name="Olive">#808000</color>
++    <color name="Purple">#800080</color>
++    <color name="Maroon">#800000</color>
++    <color name="Aquamarine">#7FFFD4</color>
++    <color name="Chartreuse">#7FFF00</color>
++    <color name="LawnGreen">#7CFC00</color>
++    <color name="MediumSlateBlue">#7B68EE</color>
++    <color name="LightSlateGray">#778899</color>
++    <color name="SlateGray">#708090</color>
++    <color name="OliveDrab">#6B8E23</color>
++    <color name="SlateBlue">#6A5ACD</color>
++    <color name="DimGray">#696969</color>
++    <color name="MediumAquamarine">#66CDAA</color>
++    <color name="CornflowerBlue">#6495ED</color>
++    <color name="CadetBlue">#5F9EA0</color>
++    <color name="DarkOliveGreen">#556B2F</color>
++    <color name="Indigo">#4B0082</color>
++    <color name="MediumTurquoise">#48D1CC</color>
++    <color name="DarkSlateBlue">#483D8B</color>
++    <color name="SteelBlue">#4682B4</color>
++    <color name="RoyalBlue">#4169E1</color>
++    <color name="Turquoise">#40E0D0</color>
++    <color name="MediumSeaGreen">#3CB371</color>
++    <color name="LimeGreen">#32CD32</color>
++    <color name="DarkSlateGray">#2F4F4F</color>
++    <color name="SeaGreen">#2E8B57</color>
++    <color name="ForestGreen">#228B22</color>
++    <color name="LightSeaGreen">#20B2AA</color>
++    <color name="DodgerBlue">#1E90FF</color>
++    <color name="MidnightBlue">#191970</color>
++    <color name="Aqua">#00FFFF</color>
++    <color name="Cyan">#00FFFF</color>
++    <color name="SpringGreen">#00FF7F</color>
++    <color name="Lime">#00FF00</color>
++    <color name="MediumSpringGreen">#00FA9A</color>
++    <color name="DarkTurquoise">#00CED1</color>
++    <color name="DeepSkyBlue">#00BFFF</color>
++    <color name="DarkCyan">#008B8B</color>
++    <color name="Teal">#008080</color>
++    <color name="Green">#008000</color>
++    <color name="DarkGreen">#006400</color>
++    <color name="Blue">#0000FF</color>
++    <color name="MediumBlue">#0000CD</color>
++    <color name="DarkBlue">#00008B</color>
++    <color name="Navy">#000080</color>
++    <color name="Black">#000000</color>
++    <color name="colorKhuffee">#24160D</color>
++    <color name="colorSignIn">#dd6ABA4E</color>
++    <color name="colorSignup">#FFFFF0</color>
++</resources>
+Index: app/src/main/res/drawable/border3.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/border3.xml	(revision )
++++ app/src/main/res/drawable/border3.xml	(revision )
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="utf-8"?>
++<selector xmlns:android="http://schemas.android.com/apk/res/android">
++    <item android:state_pressed="true">
++        <shape android:shape="rectangle" android:thickness="2dp">
++            <stroke android:width="1dp" android:color="#FFF07B09" />
++            <corners android:radius="5dp" />
++        </shape>
++    </item>
++    <item android:state_focused="true">
++        <shape android:shape="rectangle" android:thickness="2dp">
++            <stroke android:width="1dp" android:color="#FFF07B09" />
++            <corners android:radius="5dp" />
++        </shape>
++    </item>
++    <item>
++        <shape android:shape="rectangle" android:thickness="0dp">
++            <stroke android:width="1dp" android:color="#FFD0D0D0" />
++        </shape>
++    </item>
++</selector>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision )
++++ .idea/misc.xml	(revision )
+@@ -0,0 +1,73 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="EntryPointsManager">
++    <entry_points version="2.0" />
++  </component>
++  <component name="NullableNotNullManager">
++    <option name="myDefaultNullable" value="android.support.annotation.Nullable" />
++    <option name="myDefaultNotNull" value="android.support.annotation.NonNull" />
++    <option name="myNullables">
++      <value>
++        <list size="4">
++          <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.Nullable" />
++          <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nullable" />
++          <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.Nullable" />
++          <item index="3" class="java.lang.String" itemvalue="android.support.annotation.Nullable" />
++        </list>
++      </value>
++    </option>
++    <option name="myNotNulls">
++      <value>
++        <list size="4">
++          <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
++          <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
++          <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
++          <item index="3" class="java.lang.String" itemvalue="android.support.annotation.NonNull" />
++        </list>
++      </value>
++    </option>
++  </component>
++  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
++    <OptionsSetting value="true" id="Add" />
++    <OptionsSetting value="true" id="Remove" />
++    <OptionsSetting value="true" id="Checkout" />
++    <OptionsSetting value="true" id="Update" />
++    <OptionsSetting value="true" id="Status" />
++    <OptionsSetting value="true" id="Edit" />
++    <ConfirmationsSetting value="0" id="Add" />
++    <ConfirmationsSetting value="0" id="Remove" />
++  </component>
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
++    <output url="file://$PROJECT_DIR$/build/classes" />
++  </component>
++  <component name="ProjectType">
++    <option name="id" value="Android" />
++  </component>
++  <component name="masterDetails">
++    <states>
++      <state key="ProjectJDKs.UI">
++        <settings>
++          <last-edited>1.8</last-edited>
++          <splitter-proportions>
++            <option name="proportions">
++              <list>
++                <option value="0.2" />
++              </list>
++            </option>
++          </splitter-proportions>
++        </settings>
++      </state>
++      <state key="ScopeChooserConfigurable.UI">
++        <settings>
++          <splitter-proportions>
++            <option name="proportions">
++              <list>
++                <option value="0.2" />
++              </list>
++            </option>
++          </splitter-proportions>
++        </settings>
++      </state>
++    </states>
++  </component>
++</project>
+\ No newline at end of file
+Index: Classes1/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- Classes1/build.gradle	(revision )
++++ Classes1/build.gradle	(revision )
+@@ -0,0 +1,2 @@
++configurations.create("default")
++artifacts.add("default", file('Classes.jar'))
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/fragments/HomeFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/fragments/HomeFragment.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/fragments/HomeFragment.java	(revision )
+@@ -0,0 +1,50 @@
++package com.example.cafe.khuffee.fragments;
++
++import android.graphics.Bitmap;
++import android.graphics.BitmapFactory;
++import android.graphics.Point;
++import android.os.Bundle;
++import android.support.annotation.Nullable;
++import android.support.v4.app.Fragment;
++import android.view.Display;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.ImageView;
++
++import com.example.cafe.khuffee.R;
++
++/**
++ * Created by lee on 2016-05-29.
++ */
++public class HomeFragment extends Fragment  {
++    public static final String name = "Home";
++    private ImageView imgKhuffee;
++
++    @Nullable
++    @Override
++    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
++        View view = inflater.inflate(R.layout.fragment_home, container, false);
++
++        return view;
++    }
++
++    @Override
++    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
++        super.onViewCreated(view, savedInstanceState);
++        imgKhuffee = (ImageView)view.findViewById(R.id.img_khuffee);
++
++        Display display = view.getDisplay();
++        Point size = new Point();
++        display.getSize(size);
++
++        Bitmap bitmapImage = BitmapFactory.decodeResource(getResources(), R.drawable.khuffee);
++        int h = bitmapImage.getHeight();
++        int w = bitmapImage.getWidth();
++        int imgWidth = size.x;
++        int imgHeight = (int)Math.floor((double)h * ((double) imgWidth / (double) w));
++
++        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmapImage, imgWidth, imgHeight, true);
++        imgKhuffee.setImageBitmap(resizeBitmap);
++    }
++}
+Index: app/src/main/java/com/example/cafe/khuffee/network/Connection.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/network/Connection.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/network/Connection.java	(revision )
+@@ -0,0 +1,117 @@
++package com.example.cafe.khuffee.network;
++
++import android.os.Handler;
++import android.util.Log;
++
++import classes.User;
++
++import java.io.IOException;
++import java.io.ObjectInputStream;
++import java.io.ObjectOutputStream;
++import java.net.Socket;
++import java.util.ArrayList;
++
++/**
++ * Created by lee on 2016-06-04.
++ */
++public class Connection extends Thread {
++    private static final String END_MESSAGE = "THEEND";
++
++    private String ip;
++    private int port;
++    private Socket socket;
++    private ObjectOutputStream oos;
++    private ObjectInputStream ois;
++
++    private String message;
++    private ArrayList<Object> sendBuffer;
++    private ArrayList<Object> receiveBuffer;
++
++    public Connection(String ip, int port) {
++        this.ip = ip;
++        this.port = port;
++        sendBuffer = new ArrayList<>();
++        receiveBuffer = new ArrayList<>();
++    }
++
++    public void setMessage(String message) {
++        this.message = message;
++    }
++
++    public void pushSendBuffer(Object o) {
++        sendBuffer.add(o);
++    }
++
++    public boolean hasNext() {
++        if(receiveBuffer.isEmpty()) {
++            return false;
++        }
++        else {
++            return true;
++        }
++    }
++
++    public Object popReceiveBuffer() {
++        if(hasNext()) {
++            Object o = receiveBuffer.get(0);
++            receiveBuffer.remove(0);
++            return o;
++        }
++        return null;
++    }
++
++    @Override
++    public void run() {
++        super.run();
++
++        try {
++            if (message == null || message.isEmpty()) {
++                Log.e("Connection", "message is none");
++                return;
++            }
++
++            socket = new Socket(ip, port);
++            oos = new ObjectOutputStream(socket.getOutputStream());
++            oos.flush();
++            ois = new ObjectInputStream(socket.getInputStream());
++            Log.e("Connection", "connected to server");
++
++            oos.writeUTF(message);
++
++            while(!sendBuffer.isEmpty()) {
++                oos.writeObject(sendBuffer.get(0));
++                sendBuffer.remove(0);
++            }
++
++            Object received;
++            while(true) {
++                received = ois.readObject();
++                if(received instanceof User) {
++                    Log.e("Connection", ((User) received).getmId());
++                }
++                else if(((String)received).compareTo(END_MESSAGE) == 0) {
++                    break;
++                }
++                receiveBuffer.add(received);
++            }
++            //oos.writeUTF(END_MESSAGE);
++
++        } catch (Exception e) {
++            e.printStackTrace();
++        } finally {
++            try {
++                if (ois != null) {
++                    ois.close();
++                }
++                if (oos != null) {
++                    oos.close();
++                }
++                if(socket != null) {
++                    socket.close();
++                }
++            } catch (IOException e) {
++                e.printStackTrace();
++            }
++        }
++    }
++}
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/gradle.xml	(revision )
++++ .idea/gradle.xml	(revision )
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="GradleSettings">
++    <option name="linkedExternalProjectsSettings">
++      <GradleProjectSettings>
++        <option name="distributionType" value="DEFAULT_WRAPPED" />
++        <option name="externalProjectPath" value="$PROJECT_DIR$" />
++        <option name="gradleJvm" value="1.8" />
++        <option name="modules">
++          <set>
++            <option value="$PROJECT_DIR$" />
++            <option value="$PROJECT_DIR$/Classes3" />
++            <option value="$PROJECT_DIR$/app" />
++          </set>
++        </option>
++      </GradleProjectSettings>
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: settings.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- settings.gradle	(revision )
++++ settings.gradle	(revision )
+@@ -0,0 +1,1 @@
++include ':app', ':Classes3'
+Index: Classes3/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- Classes3/build.gradle	(revision )
++++ Classes3/build.gradle	(revision )
+@@ -0,0 +1,2 @@
++configurations.create("default")
++artifacts.add("default", file('Classes.jar'))
+\ No newline at end of file
+Index: app/src/main/java/com/example/cafe/khuffee/network/NetworkHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/network/NetworkHandler.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/network/NetworkHandler.java	(revision )
+@@ -0,0 +1,127 @@
++package com.example.cafe.khuffee.network;
++
++import com.example.cafe.khuffee.dialogs.MyDialogListener;
++
++import classes.User;
++
++/**
++ * Created by lee on 2016-06-07.
++ */
++public class NetworkHandler {
++    private static final String SERVER_IP = "163.180.116.169";
++    private static final int SERVER_PORT = 9871;
++
++//    private NetworkHandlerInterface networkHandlerInterface;
++    private boolean flgWorking;
++    private boolean flgCheckId;
++    private boolean flgInsertUser;
++    private boolean flgSignin;
++    private User user;
++    private String message;
++
++    public NetworkHandler() {
++        flgWorking = false;
++    }
++
++    public void checkID(final String id) {
++        flgWorking = true;
++        new Thread(new Runnable() {
++            @Override
++            public void run() {
++                Connection connection = new Connection(SERVER_IP, SERVER_PORT);
++                connection.setMessage("REQ:CHECKID");
++                connection.pushSendBuffer(id);
++                connection.run();
++
++                while(connection.hasNext()) {
++                    if(((String)connection.popReceiveBuffer()).compareTo("EXIST") == 0) {
++                        flgCheckId = true;
++                    }
++                    else {
++                        flgCheckId = false;
++                    }
++                }
++                flgWorking = false;
++            }
++        }).start();
++    }
++
++    public void insertUser(final User user) {
++        flgWorking = true;
++        new Thread(new Runnable() {
++            @Override
++            public void run() {
++                Connection connection = new Connection(SERVER_IP, SERVER_PORT);
++                connection.setMessage("INSERT:USER");
++                connection.pushSendBuffer(user);
++                connection.run();
++
++                while(connection.hasNext()) {
++                    if(((String)connection.popReceiveBuffer()).compareTo("OK") == 0) {
++                        flgInsertUser = true;
++                    }
++                    else {
++                        flgInsertUser = false;
++                    }
++                }
++                flgWorking = false;
++            }
++        }).start();
++    }
++
++    public void signin(final String id, final String pass) {
++        flgWorking = true;
++        new Thread(new Runnable() {
++            @Override
++            public void run() {
++                Connection connection = new Connection(SERVER_IP, SERVER_PORT);
++                connection.setMessage("REQ:SIGNIN");
++                connection.pushSendBuffer(id);
++                connection.pushSendBuffer(pass);
++                connection.run();
++
++                while(connection.hasNext()) {
++                    if(((String)connection.popReceiveBuffer()).compareTo("ACCEPT") == 0) {
++                        user = (User)connection.popReceiveBuffer();
++                        flgSignin = true;
++                    }
++                    else if(((String)connection.popReceiveBuffer()).compareTo("NONE") == 0) {
++                        message = "존재하지 않는 아이디입니다.";
++                        flgSignin = false;
++
++                    }
++                    else if(((String)connection.popReceiveBuffer()).compareTo("REJECT") == 0) {
++                        message = "비밀번호가 일치하지 않습니다.";
++                        flgSignin = false;
++                    }
++                }
++                flgWorking = false;
++            }
++        }).start();
++    }
++
++    public boolean isWorking() {
++        return flgWorking;
++    }
++
++    public boolean getCheckId() {
++        return flgCheckId;
++    }
++
++    public boolean getInsertUser() {
++        return flgInsertUser;
++    }
++
++    public boolean getSignIn() {
++        return flgSignin;
++    }
++
++    public String getMessge() {
++        return message;
++    }
++
++    public User getUser() {
++        return user;
++    }
++}
++
+Index: app/src/main/res/values/dimens.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/dimens.xml	(revision )
++++ app/src/main/res/values/dimens.xml	(revision )
+@@ -0,0 +1,5 @@
++<resources>
++    <!-- Default screen margins, per the Android Design guidelines. -->
++    <dimen name="activity_horizontal_margin">16dp</dimen>
++    <dimen name="activity_vertical_margin">16dp</dimen>
++</resources>
+Index: app/src/main/res/layout/activity_signup.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_signup.xml	(revision )
++++ app/src/main/res/layout/activity_signup.xml	(revision )
+@@ -0,0 +1,162 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical"
++    tools:context="com.example.cafe.khuffee.activities.SignupActivity">
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="50dp"
++        android:background="@color/colorKhuffee"
++        android:gravity="center|bottom"
++        android:text="Sign up"
++        android:textAppearance="?android:textAppearanceLarge"
++        android:textColor="@color/White" />
++
++    <ScrollView
++        android:id="@+id/scroll_whole"
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="100">
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            android:layout_margin="10dp"
++            android:orientation="vertical">
++
++            <LinearLayout
++                android:layout_width="match_parent"
++                android:layout_height="150dp"
++                android:background="@drawable/border2"
++                android:orientation="vertical"
++                android:weightSum="100">
++
++                <TextView
++                    android:layout_width="match_parent"
++                    android:layout_height="25dp"
++                    android:layout_margin="5dp"
++                    android:gravity="center_vertical"
++                    android:text="이용약관"
++                    android:textAppearance="?android:textAppearanceMedium" />
++
++                <TextView
++                    android:id="@+id/tv_contract"
++                    android:layout_width="match_parent"
++                    android:layout_height="0dp"
++                    android:layout_margin="5dp"
++                    android:layout_weight="100"
++                    android:scrollbars="vertical"
++                    android:text="@string/contract" />
++
++            </LinearLayout>
++
++            <CheckBox
++                android:id="@+id/chbox_agree"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:text="위의 약관에 동의합니다." />
++
++            <LinearLayout
++                android:layout_width="match_parent"
++                android:layout_height="0dp"
++                android:layout_margin="10dp"
++                android:layout_weight="60"
++                android:orientation="vertical">
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="ID"
++                    android:textAppearance="?android:textAppearanceMedium"
++                    android:textColor="@color/colorKhuffee" />
++
++                <EditText
++                    android:id="@+id/edit_id"
++                    android:layout_width="match_parent"
++                    android:layout_height="50dp"
++                    android:background="@drawable/border3"
++                    android:inputType="text"
++                    android:padding="5dp" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="Password"
++                    android:textAppearance="?android:textAppearanceMedium"
++                    android:textColor="@color/colorKhuffee" />
++
++                <EditText
++                    android:id="@+id/edit_pass"
++                    android:layout_width="match_parent"
++                    android:layout_height="50dp"
++                    android:background="@drawable/border3"
++                    android:inputType="textPassword"
++                    android:padding="5dp" />
++
++                <TextView
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:text="Confirm Password"
++                android:textAppearance="?android:textAppearanceMedium"
++                android:textColor="@color/colorKhuffee" />
++
++                <EditText
++                    android:id="@+id/edit_pass2"
++                    android:layout_width="match_parent"
++                    android:layout_height="50dp"
++                    android:background="@drawable/border3"
++                    android:inputType="textPassword"
++                    android:padding="5dp" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:layout_marginTop="10dp"
++                    android:text="Username"
++                    android:textAppearance="?android:textAppearanceMedium"
++                    android:textColor="@color/colorKhuffee" />
++
++                <EditText
++                    android:id="@+id/edit_name"
++                    android:layout_width="match_parent"
++                    android:layout_height="50dp"
++                    android:background="@drawable/border3"
++                    android:inputType="text"
++                    android:padding="5dp" />
++
++                <TextView
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="Call"
++                    android:textAppearance="?android:textAppearanceMedium"
++                    android:textColor="@color/colorKhuffee" />
++
++                <EditText
++                    android:id="@+id/edit_call"
++                    android:layout_width="match_parent"
++                    android:layout_height="50dp"
++                    android:background="@drawable/border3"
++                    android:inputType="number"
++                    android:padding="5dp" />
++
++                <Button
++                    android:id="@+id/btn_ok"
++                    android:layout_width="match_parent"
++                    android:layout_height="50dp"
++                    android:layout_marginLeft="80dp"
++                    android:layout_marginRight="80dp"
++                    android:layout_marginTop="20dp"
++                    android:background="@color/colorSignIn"
++                    android:gravity="center"
++                    android:text="Sign up"
++                    android:textAppearance="?android:textAppearanceLarge"
++                    android:textColor="@color/colorSignup" />
++            </LinearLayout>
++
++        </LinearLayout>
++    </ScrollView>
++
++</LinearLayout>
+Index: app/src/main/java/com/example/cafe/khuffee/database/DatabaseCreator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/database/DatabaseCreator.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/database/DatabaseCreator.java	(revision )
+@@ -0,0 +1,34 @@
++package com.example.cafe.khuffee.database;
++
++/**
++ * Created by ckkk on 2016-05-28.
++ */
++public class DatabaseCreator implements DatabaseCreatorInterface {
++    private final String CREATE_MENUITEMTABLE =
++            "CREATE TABLE " + Databases.MenuitemTable.TABLE_NAME + "("
++                    + Databases.MenuitemTable._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
++                    + Databases.MenuitemTable.COLUMN_TYPE + " INTEGER, "
++                    + Databases.MenuitemTable.COLUMN_NAME_KOR + " TEXT NOT NULL, "
++                    + Databases.MenuitemTable.COLUMN_NAME_ENG + " TEXT NOT NULL, "
++                    + Databases.MenuitemTable.COLUMN_PRICE_HOT + " INTEGER, "
++                    + Databases.MenuitemTable.COLUMN_PRICE_COLD + " INTEGER);";
++
++    private final String CREATE_LOGTABLE = "CREATE TABLE " + Databases.LogTable.TABLE_NAME + "("
++                    + Databases.LogTable._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
++                    + Databases.LogTable.COLUMN_ID + " TEXT NOT NULL, "
++                    + Databases.LogTable.COLUMN_PASS + " TEXT NOT NULL, "
++                    + Databases.LogTable.COLUMN_DATE + " NUMERIC NOT NULL);";
++
++    private final String CREATE_USRTABLE = "CREATE TABLE " + Databases.UserTable.TABLE_NAME + "("
++                    + Databases.UserTable.COLUMN_ID + " TEXT PRIMARY KEY, "
++                    + Databases.UserTable.COLUMN_PASS + " TEXT NOT NULL, "
++                    + Databases.UserTable.COLUMN_NAME + " TEXT NOT NULL, "
++                    + Databases.UserTable.COLUMN_PHONE + " TEXT, "
++                    + Databases.UserTable.COLUMN_COUPON + " INTEGER);";
++
++    @Override
++    public String[] getCreateTableStatement() {
++        String[] tableStatement = {CREATE_MENUITEMTABLE, CREATE_LOGTABLE, CREATE_USRTABLE};
++        return tableStatement;
++    }
++}
+\ No newline at end of file
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/strings.xml	(revision )
++++ app/src/main/res/values/strings.xml	(revision )
+@@ -0,0 +1,15 @@
++<resources>
++    <string name="app_name">Khuffee</string>
++    <string name="contract">제 1 조(목적)\n이 약관은 Khuffee가 제공하는 서비스의 이용과 관련하여 회사와 회원과의 권리,
++    의무 및 책임사항, 기타 필요한 규정함을 목적으로 합니다.\n제 2 조(정의)\n이 약관에서 사용하는 용어의 정의 다음과 같습니다.\n
++    1. "서비스"라 함은 구현되는 단말기와 상관없이 "회원"이 이용할 수 있는 Khuffee 관련 제반 서비스를 말합니다.\n
++    2. "회원"이라 함은 회사의 "서비스"에 접속하여 이 약관에 따라 "회사"와 이용계약을 체결하고 "회사"가 제공하는 "서비스"를 이용하는 고객
++    을 말합니다.\n 3. "아이디"라 함은 "회원"의 식별과 "서비스"이용을 위하여 "회원"이 정하고 "회사"가 승인하는 문자와 숫자의 조합을 의미
++    합니다.\n4. "비밀번호"라 함은 "회원"이 부여 받은 "아이디"와 일치되는 "회원"임을 확인하고 비미로호를 위해 "회원" 자신이 정한 문자 또는
++    숫자의 조합을 의미합니다.\n제 3 조(약관의 게시와 개정)\n"회사"는 좋은 서비스만 제공해주니 회원가입을 하세요</string>
++    <string name="welcom">환영합니다.\n\'KHUFFEE\'입니다.</string>
++    <string name="restriction">죄송합니다.\n회원만 사용가능한 서비스입니다.</string>
++    <string name="sign_up">Sign up</string>
++    <string name="sign_in">Sign in</string>
++</resources>
++
+Index: app/src/main/java/com/example/cafe/khuffee/database/DatabaseCreatorInterface.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/cafe/khuffee/database/DatabaseCreatorInterface.java	(revision )
++++ app/src/main/java/com/example/cafe/khuffee/database/DatabaseCreatorInterface.java	(revision )
+@@ -0,0 +1,11 @@
++package com.example.cafe.khuffee.database;
++
++/**
++ * Created by ckkk on 2016-05-28.
++ */
++public interface DatabaseCreatorInterface {
++    public static final String DATABASE_NAME = "cafe.db";
++    public static final int DATABASE_VERSION = 1;
++
++    public String[] getCreateTableStatement();
++}
+Index: build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- build.gradle	(revision )
++++ build.gradle	(revision )
+@@ -0,0 +1,23 @@
++// Top-level build file where you can add configuration options common to all sub-projects/modules.
++
++buildscript {
++    repositories {
++        jcenter()
++    }
++    dependencies {
++        classpath 'com.android.tools.build:gradle:1.5.0'
++
++        // NOTE: Do not place your application dependencies here; they belong
++        // in the individual module build.gradle files
++    }
++}
++
++allprojects {
++    repositories {
++        jcenter()
++    }
++}
++
++task clean(type: Delete) {
++    delete rootProject.buildDir
++}
+Index: gradle.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>x-windows-949
+===================================================================
+--- gradle.properties	(revision )
++++ gradle.properties	(revision )
+@@ -0,0 +1,18 @@
++# Project-wide Gradle settings.
++
++# IDE (e.g. Android Studio) users:
++# Gradle settings configured through the IDE *will override*
++# any settings specified in this file.
++
++# For more details on how to configure your build environment visit
++# http://www.gradle.org/docs/current/userguide/build_environment.html
++
++# Specifies the JVM arguments used for the daemon process.
++# The setting is particularly useful for tweaking memory settings.
++# Default value: -Xmx10248m -XX:MaxPermSize=256m
++# org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
++
++# When configured, Gradle will run in incubating parallel mode.
++# This option should only be used with decoupled projects. More details, visit
++# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects
++# org.gradle.parallel=true
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_main.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_main.xml	(revision )
++++ app/src/main/res/layout/activity_main.xml	(revision )
+@@ -0,0 +1,27 @@
++<?xml version="1.0" encoding="utf-8"?>
++<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="horizontal"
++    tools:context=".activities.MainActivity">
++
++    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
++        xmlns:tools="http://schemas.android.com/tools"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:id="@+id/pager"
++        tools:context=".activities.MainActivity">
++
++        <android.support.v4.view.PagerTabStrip
++            android:layout_width="wrap_content"
++            android:layout_height="50dp"
++            android:background="@color/colorKhuffee"
++            android:id="@+id/pager_tab"
++            android:textSize="25dp"
++            android:focusableInTouchMode="false">
++
++        </android.support.v4.view.PagerTabStrip>
++
++    </android.support.v4.view.ViewPager>
++</FrameLayout>
+Index: app/src/main/res/values-w820dp/dimens.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values-w820dp/dimens.xml	(revision )
++++ app/src/main/res/values-w820dp/dimens.xml	(revision )
+@@ -0,0 +1,6 @@
++<resources>
++    <!-- Example customization of dimensions originally defined in res/values/dimens.xml
++         (such as screen margins) for screens with more than 820dp of available width. This
++         would include 7" and 10" devices in landscape (~960dp and ~1280dp respectively). -->
++    <dimen name="activity_horizontal_margin">64dp</dimen>
++</resources>

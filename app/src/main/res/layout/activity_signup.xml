@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.cafe.khuffee.activities.SignupActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorKhuffee"
+        android:gravity="center|bottom"
+        android:text="Sign up"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textColor="@color/White" />
+
+    <ScrollView
+        android:id="@+id/scroll_whole"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="100">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@drawable/border2"
+                android:orientation="vertical"
+                android:weightSum="100">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:layout_margin="5dp"
+                    android:gravity="center_vertical"
+                    android:text="이용약관"
+                    android:textAppearance="?android:textAppearanceMedium" />
+
+                <TextView
+                    android:id="@+id/tv_contract"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_margin="5dp"
+                    android:layout_weight="100"
+                    android:scrollbars="vertical"
+                    android:text="@string/contract" />
+
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/chbox_agree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="위의 약관에 동의합니다." />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_margin="10dp"
+                android:layout_weight="60"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ID"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="@color/colorKhuffee" />
+
+                <EditText
+                    android:id="@+id/edit_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/border3"
+                    android:inputType="text"
+                    android:padding="5dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Password"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="@color/colorKhuffee" />
+
+                <EditText
+                    android:id="@+id/edit_pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/border3"
+                    android:inputType="textPassword"
+                    android:padding="5dp" />
+
+                <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Confirm Password"
+                android:textAppearance="?android:textAppearanceMedium"
+                android:textColor="@color/colorKhuffee" />
+
+                <EditText
+                    android:id="@+id/edit_pass2"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/border3"
+                    android:inputType="textPassword"
+                    android:padding="5dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Username"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="@color/colorKhuffee" />
+
+                <EditText
+                    android:id="@+id/edit_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/border3"
+                    android:inputType="text"
+                    android:padding="5dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Call"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="@color/colorKhuffee" />
+
+                <EditText
+                    android:id="@+id/edit_call"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/border3"
+                    android:inputType="number"
+                    android:padding="5dp" />
+
+                <Button
+                    android:id="@+id/btn_ok"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginLeft="80dp"
+                    android:layout_marginRight="80dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@color/colorSignIn"
+                    android:gravity="center"
+                    android:text="Sign up"
+                    android:textAppearance="?android:textAppearanceLarge"
+                    android:textColor="@color/colorSignup" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
